@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhoDat? — The Party Guessing Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f0a1e;
+  --surface: #1a1333;
+  --surface2: #251d42;
+  --accent: #f72585;
+  --accent2: #7209b7;
+  --accent3: #4cc9f0;
+  --accent4: #f9c74f;
+  --green: #06d6a0;
+  --red: #ef476f;
+  --text: #f0e6ff;
+  --text-dim: #8b7faa;
+  --radius: 16px;
+  --font-display: 'Lilita One', cursive;
+  --font-body: 'Nunito', sans-serif;
+}
+
+html { height: 100%; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(114, 9, 183, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(247, 37, 133, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(76, 201, 240, 0.08) 0%, transparent 50%);
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────── */
+#app {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen { display: none; flex-direction: column; align-items: center; flex: 1; }
+.screen.active { display: flex; }
+
+/* ─── LOGO ───────────────────────────────────────────── */
+.logo {
+  font-family: var(--font-display);
+  font-size: 3.5rem;
+  text-align: center;
+  margin: 40px 0 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 4px 24px rgba(247, 37, 133, 0.3));
+  animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.logo-sub {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 40px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── CARDS & PANELS ─────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 28px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.card + .card { margin-top: 16px; }
+
+/* ─── INPUTS ─────────────────────────────────────────── */
+input[type="text"], textarea {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--surface2);
+  border: 2px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.2);
+}
+
+textarea {
+  resize: none;
+  min-height: 100px;
+}
+
+::placeholder { color: var(--text-dim); }
+
+label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-group + .input-group { margin-top: 16px; }
+
+/* ─── BUTTONS ────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.btn:active { transform: scale(0.96); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  box-shadow: 0 4px 20px rgba(247, 37, 133, 0.3);
+}
+.btn-primary:hover { box-shadow: 0 6px 28px rgba(247, 37, 133, 0.5); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 2px solid rgba(255,255,255,0.1);
+}
+.btn-secondary:hover { border-color: var(--accent3); }
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent3), #3a86ff);
+  color: white;
+  box-shadow: 0 4px 20px rgba(76, 201, 240, 0.3);
+}
+
+.btn-green {
+  background: linear-gradient(135deg, var(--green), #049e76);
+  color: white;
+  box-shadow: 0 4px 20px rgba(6, 214, 160, 0.3);
+}
+
+.btn-full { width: 100%; }
+.btn + .btn { margin-top: 10px; }
+
+/* ─── TIMER ──────────────────────────────────────────── */
+.timer-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+
+.timer-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent3), var(--accent));
+  border-radius: 3px;
+  transition: width 0.5s linear;
+}
+
+.timer-bar-fill.urgent {
+  background: linear-gradient(90deg, var(--accent4), var(--red));
+  animation: timerFlash 0.5s ease-in-out infinite;
+}
+
+@keyframes timerFlash {
+  50% { opacity: 0.7; }
+}
+
+.timer-text {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  color: var(--accent3);
+}
+
+.timer-text.urgent { color: var(--red); }
+
+/* ─── PHASE HEADER ───────────────────────────────────── */
+.phase-header {
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.phase-tag {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.phase-tag.question { background: rgba(247, 37, 133, 0.2); color: var(--accent); }
+.phase-tag.answering { background: rgba(76, 201, 240, 0.2); color: var(--accent3); }
+.phase-tag.reveal { background: rgba(249, 199, 79, 0.2); color: var(--accent4); }
+.phase-tag.guessing { background: rgba(114, 9, 183, 0.2); color: #b57edc; }
+.phase-tag.voting { background: rgba(6, 214, 160, 0.2); color: var(--green); }
+
+.phase-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.phase-subtitle {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.turn-info {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ─── QUESTION DISPLAY ───────────────────────────────── */
+.question-display {
+  background: linear-gradient(135deg, rgba(247,37,133,0.1), rgba(114,9,183,0.1));
+  border: 1px solid rgba(247, 37, 133, 0.2);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 12px 0;
+  width: 100%;
+}
+
+/* ─── ANSWER CARDS ───────────────────────────────────── */
+.answer-card {
+  background: var(--surface2);
+  border: 2px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 8px 0;
+  width: 100%;
+  font-size: 1.05rem;
+  font-weight: 600;
+  animation: slideUp 0.4s ease-out;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.answer-card.reveal-anim {
+  animation: revealPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes revealPop {
+  0% { opacity: 0; transform: scale(0.8) rotateX(20deg); }
+  100% { opacity: 1; transform: scale(1) rotateX(0); }
+}
+
+.answer-number {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: white;
+}
+
+/* ─── PLAYER CHIPS ───────────────────────────────────── */
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--surface2);
+  border: 2px solid rgba(255,255,255,0.08);
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.player-chip:hover { border-color: var(--accent3); }
+.player-chip.selected { border-color: var(--accent); background: rgba(247,37,133,0.15); }
+.player-chip.assigned { opacity: 0.35; pointer-events: none; }
+.player-chip .avatar { font-size: 1.2rem; }
+
+.player-list-lobby {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+/* ─── GUESS MATCHING ─────────────────────────────────── */
+.guess-row {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin: 8px 0;
+  width: 100%;
+  animation: slideUp 0.3s ease-out;
+}
+
+.guess-answer {
+  flex: 1;
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+}
+
+.guess-arrow { color: var(--text-dim); display: flex; align-items: center; font-size: 1.2rem; }
+
+.guess-player-slot {
+  min-width: 140px;
+  background: var(--surface);
+  border: 2px dashed rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-dim);
+}
+
+.guess-player-slot.filled {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(247,37,133,0.1);
+}
+
+.guess-player-slot:hover { border-color: var(--accent3); }
+
+/* ─── RESULTS ────────────────────────────────────────── */
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin: 6px 0;
+  width: 100%;
+  animation: slideUp 0.3s ease-out;
+}
+
+.result-row.correct { background: rgba(6, 214, 160, 0.1); border-left: 4px solid var(--green); }
+.result-row.wrong { background: rgba(239, 71, 111, 0.1); border-left: 4px solid var(--red); }
+
+.result-icon { font-size: 1.3rem; }
+.result-answer { flex: 1; font-weight: 600; }
+.result-player { font-weight: 700; color: var(--accent3); }
+
+/* ─── SCOREBOARD ─────────────────────────────────────── */
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin: 6px 0;
+  width: 100%;
+  background: var(--surface2);
+  animation: slideUp 0.3s ease-out;
+}
+
+.score-row:first-child {
+  background: linear-gradient(135deg, rgba(249,199,79,0.15), rgba(247,37,133,0.1));
+  border: 1px solid rgba(249, 199, 79, 0.3);
+}
+
+.score-rank {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.score-name { flex: 1; font-weight: 700; font-size: 1.05rem; }
+.score-points {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--accent4);
+}
+
+/* ─── VOTE BUTTONS ───────────────────────────────────── */
+.vote-section { margin: 16px 0; width: 100%; }
+.vote-section h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vote-option {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border: 2px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 6px 0;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.vote-option:hover { border-color: var(--accent3); }
+.vote-option.voted { border-color: var(--green); background: rgba(6, 214, 160, 0.1); }
+
+/* ─── LOBBY CODE ─────────────────────────────────────── */
+.lobby-code {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  letter-spacing: 0.15em;
+  text-align: center;
+  background: linear-gradient(135deg, var(--accent4), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.lobby-code:hover { transform: scale(1.05); }
+
+.lobby-code-label {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ─── WAITING DOTS ───────────────────────────────────── */
+.waiting-dots::after {
+  content: '';
+  animation: dots 1.5s steps(4) infinite;
+}
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+/* ─── CROWN ──────────────────────────────────────────── */
+.crown { font-size: 1.4rem; }
+
+/* ─── GAME OVER ──────────────────────────────────────── */
+.winner-banner {
+  text-align: center;
+  padding: 30px;
+  background: linear-gradient(135deg, rgba(249,199,79,0.1), rgba(247,37,133,0.1));
+  border: 2px solid rgba(249, 199, 79, 0.3);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.winner-name {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--accent4), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── TOAST ──────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 700;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ─── STATUS ─────────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge.host { background: rgba(249,199,79,0.2); color: var(--accent4); }
+.status-badge.you { background: rgba(76,201,240,0.2); color: var(--accent3); }
+.status-badge.disconnected { background: rgba(239,71,111,0.2); color: var(--red); }
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 500px) {
+  .logo { font-size: 2.5rem; }
+  .card { padding: 20px; }
+  .guess-row { flex-direction: column; gap: 6px; }
+  .guess-arrow { transform: rotate(90deg); justify-content: center; }
+  .guess-player-slot { min-width: 100%; }
+  .lobby-code { font-size: 2.2rem; }
+}
+
+/* ─── CONFETTI ───────────────────────────────────────── */
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  z-index: 999;
+  animation: confettiFall 3s linear forwards;
+}
+
+@keyframes confettiFall {
+  to { top: 110vh; transform: rotateZ(720deg); opacity: 0; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ═══ SCREEN: HOME ═══ -->
+  <div id="screen-home" class="screen active">
+    <div class="logo">WhoDat?</div>
+    <div class="logo-sub">The Party Guessing Game</div>
+
+    <div class="card">
+      <div class="input-group">
+        <label>Your Name</label>
+        <input type="text" id="input-name" placeholder="Enter your name..." maxlength="20" autocomplete="off">
+      </div>
+      <div style="margin-top: 20px;">
+        <button class="btn btn-primary btn-full" id="btn-create">Create Lobby</button>
+        <button class="btn btn-secondary btn-full" id="btn-show-join">Join a Lobby</button>
+      </div>
+    </div>
+
+    <div class="card" id="join-section" style="display:none;">
+      <div class="input-group">
+        <label>Lobby Code</label>
+        <input type="text" id="input-code" placeholder="ABCDE" maxlength="5" autocomplete="off" style="text-transform: uppercase; text-align: center; font-size: 1.3rem; letter-spacing: 0.1em;">
+      </div>
+      <button class="btn btn-accent btn-full" id="btn-join" style="margin-top: 16px;">Join Game</button>
+    </div>
+  </div>
+
+  <!-- ═══ SCREEN: LOBBY ═══ -->
+  <div id="screen-lobby" class="screen">
+    <div class="logo" style="font-size: 2rem; margin: 20px 0 4px;">WhoDat?</div>
+    <div class="card" style="text-align: center;">
+      <div style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em;">Lobby Code</div>
+      <div class="lobby-code" id="display-code" title="Click to copy"></div>
+      <div class="lobby-code-label">click to copy • share with friends</div>
+    </div>
+
+    <div class="card">
+      <label>Players (<span id="player-count">0</span>/10)</label>
+      <div class="player-list-lobby" id="player-list"></div>
+    </div>
+
+    <div id="host-controls" style="width: 100%; margin-top: 16px; display: none;">
+      <button class="btn btn-primary btn-full" id="btn-start" disabled>Need at least 3 players</button>
+    </div>
+
+    <div id="guest-waiting" style="text-align: center; margin-top: 20px; display: none;">
+      <p class="waiting-dots" style="color: var(--text-dim); font-weight: 600;">Waiting for host to start</p>
+    </div>
+  </div>
+
+  <!-- ═══ SCREEN: GAME ═══ -->
+  <div id="screen-game" class="screen">
+    <div id="game-content" style="width: 100%;"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────────────────
+let ws = null;
+let myId = null;
+let lobbyCode = null;
+let isHost = false;
+let players = [];
+let gamePhase = null;
+let timerInterval = null;
+let timerEnd = null;
+let currentGuesser = null;
+let currentQuestion = '';
+let revealedAnswers = [];
+let allAnswers = [];
+let answerablePlayers = [];
+let guessAssignments = {}; // answerId -> playerId
+let selectedAnswerForGuess = null;
+let myBestVote = null;
+let myFunniestVote = null;
+
+// ─── WEBSOCKET ──────────────────────────────────────────────────────
+function connect() {
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${location.host}`);
+
+  ws.onopen = () => console.log('Connected');
+  ws.onclose = () => {
+    console.log('Disconnected');
+    setTimeout(connect, 2000);
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleServerMessage(msg);
+  };
+}
+
+function send(msg) {
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
+}
+
+// ─── MESSAGE HANDLER ────────────────────────────────────────────────
+function handleServerMessage(msg) {
+  switch (msg.type) {
+    case 'joined':
+      myId = msg.playerId;
+      lobbyCode = msg.lobbyCode;
+      isHost = msg.isHost;
+      showScreen('lobby');
+      break;
+
+    case 'error':
+      showToast(msg.message);
+      break;
+
+    case 'lobby_update':
+      players = msg.players;
+      renderLobby(msg);
+      break;
+
+    case 'timer':
+      startTimerDisplay(msg.seconds, msg.endsAt);
+      break;
+
+    case 'phase':
+      gamePhase = msg.phase;
+      if (msg.phase === 'lobby') {
+        showScreen('lobby');
+      } else if (msg.phase === 'gameover') {
+        renderGameOver(msg);
+      } else {
+        showScreen('game');
+        renderPhase(msg);
+      }
+      break;
+
+    case 'reveal_answer':
+      handleRevealAnswer(msg);
+      break;
+
+    case 'answer_submitted':
+      showToast('Answer submitted!');
+      break;
+
+    case 'answer_progress':
+      updateAnswerProgress(msg);
+      break;
+  }
+}
+
+// ─── SCREEN MANAGEMENT ──────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+}
+
+// ─── LOBBY RENDERING ────────────────────────────────────────────────
+function renderLobby(msg) {
+  document.getElementById('display-code').textContent = msg.code;
+  document.getElementById('player-count').textContent = msg.players.length;
+
+  const list = document.getElementById('player-list');
+  list.innerHTML = msg.players.map(p => {
+    const badges = [];
+    if (p.id === msg.hostId) badges.push('<span class="status-badge host">👑 Host</span>');
+    if (p.id === myId) badges.push('<span class="status-badge you">You</span>');
+    if (!p.connected) badges.push('<span class="status-badge disconnected">Offline</span>');
+    return `
+      <div class="player-chip">
+        <span class="avatar">${getAvatar(p.id)}</span>
+        ${p.name}
+        ${badges.join('')}
+      </div>
+    `;
+  }).join('');
+
+  // Host controls
+  const hostControls = document.getElementById('host-controls');
+  const guestWaiting = document.getElementById('guest-waiting');
+
+  if (isHost) {
+    hostControls.style.display = 'block';
+    guestWaiting.style.display = 'none';
+    const btn = document.getElementById('btn-start');
+    if (msg.players.length >= 3) {
+      btn.disabled = false;
+      btn.textContent = `Start Game (${msg.players.length} players)`;
+    } else {
+      btn.disabled = true;
+      btn.textContent = `Need at least 3 players (${msg.players.length}/3)`;
+    }
+  } else {
+    hostControls.style.display = 'none';
+    guestWaiting.style.display = 'block';
+  }
+}
+
+// ─── PHASE RENDERING ────────────────────────────────────────────────
+function renderPhase(msg) {
+  const gc = document.getElementById('game-content');
+  currentGuesser = msg.guesser;
+
+  switch (msg.phase) {
+    case 'question': renderQuestionPhase(gc, msg); break;
+    case 'answering': renderAnswerPhase(gc, msg); break;
+    case 'reveal': renderRevealPhase(gc, msg); break;
+    case 'guessing': renderGuessingPhase(gc, msg); break;
+    case 'voting': renderVotingPhase(gc, msg); break;
+    case 'results': renderResultsPhase(gc, msg); break;
+  }
+}
+
+function renderQuestionPhase(gc, msg) {
+  const isGuesser = msg.guesser.id === myId;
+
+  gc.innerHTML = `
+    <div class="phase-header">
+      <span class="phase-tag question">Question Time</span>
+      <div class="phase-title">${isGuesser ? 'Your Turn to Ask!' : `${msg.guesser.name} is thinking...`}</div>
+      <div class="turn-info">Turn ${msg.turnNumber} of ${msg.totalTurns} • Round ${msg.roundNumber} of ${msg.totalRounds}</div>
+      <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
+      <div class="timer-text" id="timer-text"></div>
+    </div>
+
+    ${isGuesser ? `
+      <div class="card">
+        <div class="input-group">
+          <label>Ask a Question</label>
+          <textarea id="question-input" placeholder="What's the best winter sport? What's a hill you'll die on? What would you bring to a deserted island?" maxlength="200"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-submit-question" style="margin-top: 16px;">Submit Question</button>
+        <p style="text-align: center; color: var(--text-dim); font-size: 0.8rem; margin-top: 8px;">Keep it general — no self-describing questions!</p>
+      </div>
+    ` : `
+      <div class="card" style="text-align: center;">
+        <p style="font-size: 1.1rem; font-weight: 600;">${getAvatar(msg.guesser.id)} ${msg.guesser.name} is writing a question<span class="waiting-dots"></span></p>
+        <p style="color: var(--text-dim); margin-top: 8px;">Get ready to answer!</p>
+      </div>
+    `}
+  `;
+
+  if (isGuesser) {
+    document.getElementById('btn-submit-question').onclick = () => {
+      const q = document.getElementById('question-input').value.trim();
+      if (!q) return showToast('Write a question first!');
+      send({ type: 'submit_question', question: q });
+    };
+    document.getElementById('question-input').focus();
+  }
+}
+
+function renderAnswerPhase(gc, msg) {
+  currentQuestion = msg.question;
+  const isGuesser = msg.guesser.id === myId;
+
+  gc.innerHTML = `
+    <div class="phase-header">
+      <span class="phase-tag answering">Answer Time</span>
+      <div class="phase-title">${isGuesser ? 'Wait for Answers' : 'Write Your Answer!'}</div>
+      <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
+      <div class="timer-text" id="timer-text"></div>
+    </div>
+
+    <div class="question-display">"${escapeHtml(msg.question)}"</div>
+
+    ${isGuesser ? `
+      <div class="card" style="text-align: center;">
+        <p style="font-size: 1.1rem; font-weight: 600;">Players are writing their answers<span class="waiting-dots"></span></p>
+        <p style="color: var(--text-dim); margin-top: 8px;" id="answer-progress">0 submitted</p>
+      </div>
+    ` : `
+      <div class="card">
+        <div class="input-group">
+          <label>Your Answer</label>
+          <textarea id="answer-input" placeholder="Type your answer..." maxlength="300"></textarea>
+        </div>
+        <button class="btn btn-accent btn-full" id="btn-submit-answer" style="margin-top: 16px;">Submit Answer</button>
+      </div>
+    `}
+  `;
+
+  if (!isGuesser) {
+    let submitted = false;
+    document.getElementById('btn-submit-answer').onclick = () => {
+      if (submitted) return;
+      const a = document.getElementById('answer-input').value.trim();
+      if (!a) return showToast('Write an answer first!');
+      send({ type: 'submit_answer', answer: a });
+      submitted = true;
+      document.getElementById('btn-submit-answer').disabled = true;
+      document.getElementById('btn-submit-answer').textContent = '✓ Submitted';
+      document.getElementById('answer-input').disabled = true;
+    };
+    document.getElementById('answer-input').focus();
+  }
+}
+
+function updateAnswerProgress(msg) {
+  const el = document.getElementById('answer-progress');
+  if (el) el.textContent = `${msg.submitted} of ${msg.total} submitted`;
+}
+
+function renderRevealPhase(gc, msg) {
+  revealedAnswers = [];
+  const isGuesser = msg.guesser.id === myId;
+
+  gc.innerHTML = `
+    <div class="phase-header">
+      <span class="phase-tag reveal">Reveal</span>
+      <div class="phase-title">${isGuesser ? 'Read the Answers!' : `${msg.guesser.name} is Reading...`}</div>
+    </div>
+
+    <div class="question-display">"${escapeHtml(msg.question)}"</div>
+    <div id="revealed-answers"></div>
+    ${isGuesser ? `
+      <button class="btn btn-primary btn-full" id="btn-next-reveal" style="margin-top: 16px;">Show First Answer</button>
+    ` : ''}
+  `;
+
+  if (isGuesser) {
+    document.getElementById('btn-next-reveal').onclick = () => {
+      send({ type: 'next_reveal' });
+    };
+  }
+}
+
+function handleRevealAnswer(msg) {
+  revealedAnswers.push(msg.answer);
+  const container = document.getElementById('revealed-answers');
+  if (!container) return;
+
+  container.innerHTML = revealedAnswers.map((a, i) => `
+    <div class="answer-card reveal-anim">
+      <div class="answer-number">${i + 1}</div>
+      ${escapeHtml(a.text)}
+    </div>
+  `).join('');
+
+  const isGuesser = currentGuesser?.id === myId;
+  if (isGuesser) {
+    const btn = document.getElementById('btn-next-reveal');
+    if (btn) {
+      if (msg.index < msg.total - 1) {
+        btn.textContent = `Next Answer (${msg.index + 2}/${msg.total})`;
+      } else {
+        btn.textContent = "Start Guessing →";
+        btn.onclick = () => send({ type: 'next_reveal' });
+      }
+    }
+  }
+}
+
+function renderGuessingPhase(gc, msg) {
+  allAnswers = msg.answers;
+  answerablePlayers = msg.players;
+  guessAssignments = {};
+  selectedAnswerForGuess = null;
+  const isGuesser = msg.guesser.id === myId;
+
+  if (isGuesser) {
+    gc.innerHTML = `
+      <div class="phase-header">
+        <span class="phase-tag guessing">Guess Time</span>
+        <div class="phase-title">Match Answers to Players!</div>
+        <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
+        <div class="timer-text" id="timer-text"></div>
+      </div>
+
+      <div class="question-display">"${escapeHtml(msg.question)}"</div>
+
+      <div id="guess-rows"></div>
+
+      <label style="margin-top: 16px;">Available Players</label>
+      <div id="player-chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;"></div>
+
+      <button class="btn btn-green btn-full" id="btn-lock-in" disabled>
+        🔒 Lock In Guesses
+      </button>
+      <p style="text-align: center; color: var(--text-dim); font-size: 0.8rem; margin-top: 8px;">
+        Click an answer, then click a player to assign
+      </p>
+    `;
+
+    renderGuessUI();
+
+    document.getElementById('btn-lock-in').onclick = () => {
+      if (Object.keys(guessAssignments).length < allAnswers.length) {
+        return showToast('Assign all answers first!');
+      }
+      send({ type: 'submit_guesses', guesses: guessAssignments });
+    };
+  } else {
+    gc.innerHTML = `
+      <div class="phase-header">
+        <span class="phase-tag guessing">Guess Time</span>
+        <div class="phase-title">${msg.guesser.name} is Guessing!</div>
+        <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
+        <div class="timer-text" id="timer-text"></div>
+      </div>
+
+      <div class="question-display">"${escapeHtml(msg.question)}"</div>
+
+      <div class="card" style="text-align: center;">
+        <p style="font-size: 1.1rem; font-weight: 600;">${getAvatar(msg.guesser.id)} ${msg.guesser.name} is matching answers<span class="waiting-dots"></span></p>
+      </div>
+    `;
+  }
+}
+
+function renderGuessUI() {
+  const rows = document.getElementById('guess-rows');
+  const chips = document.getElementById('player-chips');
+  if (!rows || !chips) return;
+
+  rows.innerHTML = allAnswers.map((a, i) => {
+    const assignedPlayerId = guessAssignments[a.id];
+    const assignedPlayer = answerablePlayers.find(p => p.id === assignedPlayerId);
+    const isSelected = selectedAnswerForGuess === a.id;
+
+    return `
+      <div class="guess-row">
+        <div class="guess-answer" style="${isSelected ? 'border: 2px solid var(--accent3); border-radius: 12px;' : ''}"
+             onclick="selectAnswerForGuess('${a.id}')">
+          <span class="answer-number" style="position:relative;top:0;left:0;margin-right:10px;">${i + 1}</span>
+          ${escapeHtml(a.text)}
+        </div>
+        <div class="guess-arrow">→</div>
+        <div class="guess-player-slot ${assignedPlayer ? 'filled' : ''}"
+             onclick="clearGuess('${a.id}')">
+          ${assignedPlayer ? `${getAvatar(assignedPlayer.id)} ${assignedPlayer.name}` : 'Click answer, then player'}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const assignedPlayerIds = Object.values(guessAssignments);
+  chips.innerHTML = answerablePlayers.map(p => {
+    const isAssigned = assignedPlayerIds.includes(p.id);
+    return `
+      <div class="player-chip ${isAssigned ? 'assigned' : ''}"
+           onclick="assignPlayer('${p.id}')">
+        <span class="avatar">${getAvatar(p.id)}</span>
+        ${p.name}
+      </div>
+    `;
+  }).join('');
+
+  const lockBtn = document.getElementById('btn-lock-in');
+  if (lockBtn) {
+    lockBtn.disabled = Object.keys(guessAssignments).length < allAnswers.length;
+  }
+}
+
+window.selectAnswerForGuess = (answerId) => {
+  selectedAnswerForGuess = answerId;
+  renderGuessUI();
+};
+
+window.assignPlayer = (playerId) => {
+  if (!selectedAnswerForGuess) return showToast('Select an answer first!');
+  // Remove this player from any other assignment
+  for (const [aid, pid] of Object.entries(guessAssignments)) {
+    if (pid === playerId) delete guessAssignments[aid];
+  }
+  guessAssignments[selectedAnswerForGuess] = playerId;
+  selectedAnswerForGuess = null;
+  renderGuessUI();
+};
+
+window.clearGuess = (answerId) => {
+  delete guessAssignments[answerId];
+  renderGuessUI();
+};
+
+function renderVotingPhase(gc, msg) {
+  myBestVote = null;
+  myFunniestVote = null;
+
+  gc.innerHTML = `
+    <div class="phase-header">
+      <span class="phase-tag voting">Vote!</span>
+      <div class="phase-title">Pick Your Favorites!</div>
+      <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
+      <div class="timer-text" id="timer-text"></div>
+    </div>
+
+    <div class="question-display">"${escapeHtml(msg.question)}"</div>
+
+    <div class="vote-section">
+      <h3>⭐ Best Answer</h3>
+      <div id="vote-best">
+        ${msg.answers.map(a => `
+          <button class="vote-option" data-id="${a.id}" onclick="voteBest('${a.id}')">
+            ${escapeHtml(a.text)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="vote-section">
+      <h3>😂 Funniest Answer</h3>
+      <div id="vote-funniest">
+        ${msg.answers.map(a => `
+          <button class="vote-option" data-id="${a.id}" onclick="voteFunniest('${a.id}')">
+            ${escapeHtml(a.text)}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+window.voteBest = (id) => {
+  myBestVote = id;
+  send({ type: 'vote', category: 'best', answerId: id });
+  document.querySelectorAll('#vote-best .vote-option').forEach(el => {
+    el.classList.toggle('voted', el.dataset.id === id);
+  });
+};
+
+window.voteFunniest = (id) => {
+  myFunniestVote = id;
+  send({ type: 'vote', category: 'funniest', answerId: id });
+  document.querySelectorAll('#vote-funniest .vote-option').forEach(el => {
+    el.classList.toggle('voted', el.dataset.id === id);
+  });
+};
+
+function renderResultsPhase(gc, msg) {
+  const r = msg.guessResults;
+  gc.innerHTML = `
+    <div class="phase-header">
+      <span class="phase-tag question">Results</span>
+      <div class="phase-title">${r.correct}/${r.total} Correct!</div>
+    </div>
+
+    <div class="card">
+      <label>Guesses</label>
+      ${r.results.map(res => `
+        <div class="result-row ${res.correct ? 'correct' : 'wrong'}">
+          <div class="result-icon">${res.correct ? '✅' : '❌'}</div>
+          <div class="result-answer">"${escapeHtml(res.answerText)}"</div>
+          <div>
+            ${res.correct
+              ? `<span class="result-player">${res.actualPlayer.name}</span>`
+              : `<span style="color:var(--red);text-decoration:line-through;">${res.guessedPlayer?.name || '???'}</span>
+                 → <span class="result-player">${res.actualPlayer.name}</span>`
+            }
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${msg.bestAnswer ? `
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 1.2rem; margin-bottom: 4px;">⭐ Best Answer</div>
+        <div style="font-weight: 700; font-size: 1.1rem;">"${escapeHtml(msg.bestAnswer.text)}"</div>
+        <div style="color: var(--accent3); font-weight: 700; margin-top: 4px;">— ${msg.bestAnswer.player} (+1 bonus)</div>
+      </div>
+    ` : ''}
+
+    ${msg.funniestAnswer ? `
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 1.2rem; margin-bottom: 4px;">😂 Funniest Answer</div>
+        <div style="font-weight: 700; font-size: 1.1rem;">"${escapeHtml(msg.funniestAnswer.text)}"</div>
+        <div style="color: var(--accent3); font-weight: 700; margin-top: 4px;">— ${msg.funniestAnswer.player} (+1 bonus)</div>
+      </div>
+    ` : ''}
+
+    <div class="card">
+      <label>Scoreboard</label>
+      ${msg.scoreboard.map((p, i) => `
+        <div class="score-row" style="animation-delay: ${i * 0.1}s">
+          <div class="score-rank">${i === 0 ? '👑' : `#${i + 1}`}</div>
+          <div class="score-name">${getAvatar(p.id)} ${p.name} ${p.id === myId ? '<span class="status-badge you">You</span>' : ''}</div>
+          <div class="score-points">${p.score} pts</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${isHost ? `
+      <button class="btn btn-primary btn-full" id="btn-next-turn" style="margin-top: 16px;">Next Turn →</button>
+    ` : `
+      <p style="text-align: center; color: var(--text-dim); margin-top: 16px;" class="waiting-dots">Waiting for host to continue</p>
+    `}
+  `;
+
+  if (isHost) {
+    document.getElementById('btn-next-turn').onclick = () => send({ type: 'next_turn' });
+  }
+}
+
+function renderGameOver(msg) {
+  showScreen('game');
+  const gc = document.getElementById('game-content');
+  const winner = msg.scoreboard[0];
+
+  launchConfetti();
+
+  gc.innerHTML = `
+    <div class="phase-header" style="margin-top: 40px;">
+      <div class="phase-title" style="font-size: 2.2rem;">Game Over!</div>
+    </div>
+
+    <div class="winner-banner">
+      <div style="font-size: 3rem;">🏆</div>
+      <div class="winner-name">${winner.name}</div>
+      <div style="color: var(--text-dim); font-weight: 700; margin-top: 4px;">${winner.score} points</div>
+    </div>
+
+    <div class="card">
+      <label>Final Scoreboard</label>
+      ${msg.scoreboard.map((p, i) => `
+        <div class="score-row" style="animation-delay: ${i * 0.1}s">
+          <div class="score-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</div>
+          <div class="score-name">${getAvatar(p.id)} ${p.name} ${p.id === myId ? '<span class="status-badge you">You</span>' : ''}</div>
+          <div class="score-points">${p.score} pts</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${isHost ? `
+      <button class="btn btn-primary btn-full" style="margin-top: 16px;" id="btn-play-again">Play Again</button>
+    ` : ''}
+  `;
+
+  if (isHost) {
+    document.getElementById('btn-play-again').onclick = () => send({ type: 'play_again' });
+  }
+}
+
+// ─── TIMER DISPLAY ──────────────────────────────────────────────────
+function startTimerDisplay(totalSeconds, endsAt) {
+  clearInterval(timerInterval);
+  timerEnd = endsAt;
+  const totalMs = totalSeconds * 1000;
+
+  timerInterval = setInterval(() => {
+    const remaining = Math.max(0, timerEnd - Date.now());
+    const pct = (remaining / totalMs) * 100;
+    const secs = Math.ceil(remaining / 1000);
+
+    const fill = document.getElementById('timer-fill');
+    const text = document.getElementById('timer-text');
+
+    if (fill) {
+      fill.style.width = pct + '%';
+      fill.classList.toggle('urgent', pct < 20);
+    }
+    if (text) {
+      text.textContent = secs + 's';
+      text.classList.toggle('urgent', pct < 20);
+    }
+
+    if (remaining <= 0) clearInterval(timerInterval);
+  }, 250);
+}
+
+// ─── UTILS ──────────────────────────────────────────────────────────
+const avatars = ['🦊','🐸','🦉','🐙','🦋','🐺','🦁','🐨','🦄','🐢'];
+function getAvatar(id) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = ((hash << 5) - hash) + id.charCodeAt(i);
+  return avatars[Math.abs(hash) % avatars.length];
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function launchConfetti() {
+  const colors = ['#f72585', '#7209b7', '#4cc9f0', '#f9c74f', '#06d6a0', '#ef476f'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = Math.random() * 2 + 's';
+    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (6 + Math.random() * 8) + 'px';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 5000);
+  }
+}
+
+// ─── EVENT LISTENERS ────────────────────────────────────────────────
+document.getElementById('btn-create').onclick = () => {
+  const name = document.getElementById('input-name').value.trim();
+  if (!name) return showToast('Enter your name!');
+  send({ type: 'create_lobby', name });
+};
+
+document.getElementById('btn-show-join').onclick = () => {
+  const section = document.getElementById('join-section');
+  section.style.display = section.style.display === 'none' ? 'block' : 'none';
+  if (section.style.display === 'block') document.getElementById('input-code').focus();
+};
+
+document.getElementById('btn-join').onclick = () => {
+  const name = document.getElementById('input-name').value.trim();
+  const code = document.getElementById('input-code').value.trim();
+  if (!name) return showToast('Enter your name!');
+  if (!code) return showToast('Enter a lobby code!');
+  send({ type: 'join_lobby', name, code });
+};
+
+document.getElementById('btn-start').onclick = () => {
+  send({ type: 'start_game' });
+};
+
+document.getElementById('display-code').onclick = () => {
+  navigator.clipboard?.writeText(lobbyCode);
+  showToast('Code copied!');
+};
+
+// Allow Enter key on inputs
+document.getElementById('input-name').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-create').click();
+});
+document.getElementById('input-code').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-join').click();
+});
+
+// ─── INIT ───────────────────────────────────────────────────────────
+connect();
+</script>
+</body>
+</html>
