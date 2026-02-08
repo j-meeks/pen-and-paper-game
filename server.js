@@ -2,16 +2,44 @@ const http = require('http');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { WebSocketServer } = require('ws');
 
 // ─── CONFIG ────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-const TIMER_QUESTION = 60;   // seconds to write a question
-const TIMER_ANSWER = 60;     // seconds to write an answer
-const TIMER_PER_PLAYER = 30; // seconds per player for guessing
-const ROUNDS = 3;            // each player guesses this many times
+const TIMER_QUESTION = 60;
+const TIMER_ANSWER = 60;
+const TIMER_PER_PLAYER = 30;
+const ROUNDS = 3;
+
+// ─── RESOLVE CLIENT HTML FIRST ─────────────────────────────────────
+const possiblePaths = [
+  path.join(__dirname, 'client', 'index.html'),
+  path.join(__dirname, 'index.html'),
+  path.join(process.cwd(), 'client', 'index.html'),
+  path.join(process.cwd(), 'index.html'),
+];
+
+let clientHtml = null;
+for (const p of possiblePaths) {
+  if (fs.existsSync(p)) {
+    clientHtml = fs.readFileSync(p, 'utf8');
+    console.log(`  ✔ Found client at: ${p}`);
+    break;
+  }
+}
+
+if (!clientHtml) {
+  console.error('\n  ❌ Could not find index.html!');
+  console.error('  Make sure your folder looks like this:\n');
+  console.error('    your-folder/');
+  console.error('    ├── server.js');
+  console.error('    └── client/');
+  console.error('        └── index.html\n');
+  process.exit(1);
+}
 
 // ─── GAME STATE ────────────────────────────────────────────────────
-const lobbies = new Map(); // lobbyCode -> LobbyState
+const lobbies = new Map();
 
 function generateLobbyCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -30,19 +58,18 @@ function createLobby(hostId, hostName) {
     code,
     hostId,
     players: [{ id: hostId, name: hostName, score: 0, connected: true }],
-    phase: 'lobby', // lobby | question | answering | reveal | guessing | results | gameover
-    currentRound: 0,       // 0-indexed round
-    currentGuesserIdx: 0,  // index in guesser order
-    guesserOrder: [],       // player IDs in rotation order
-    roundNumber: 0,         // which rotation we're on (0 to ROUNDS-1)
+    phase: 'lobby',
+    currentGuesserIdx: 0,
+    guesserOrder: [],
     currentQuestion: '',
-    answers: new Map(),     // playerId -> answer text
-    revealIndex: 0,         // which answer is being revealed
-    guesses: new Map(),     // answerId -> guessed playerId
+    answers: new Map(),
+    revealIndex: 0,
+    guesses: new Map(),
     timer: null,
     timerEnd: null,
-    votes: { best: new Map(), funniest: new Map() }, // playerId -> votedAnswerId
-    shuffledAnswers: [],    // [{id, text, playerId}] shuffled for display
+    votes: { best: new Map(), funniest: new Map() },
+    shuffledAnswers: [],
+    guessResults: null,
   };
   lobbies.set(code, lobby);
   return lobby;
@@ -89,15 +116,12 @@ function clearTimer(lobby) {
 
 // ─── PHASE TRANSITIONS ────────────────────────────────────────────
 function startGame(lobby) {
-  // Build guesser order: each player guesses ROUNDS times
   const playerIds = lobby.players.map(p => p.id);
   lobby.guesserOrder = [];
   for (let r = 0; r < ROUNDS; r++) {
     lobby.guesserOrder.push(...shuffleArray(playerIds));
   }
   lobby.currentGuesserIdx = 0;
-  lobby.roundNumber = 0;
-  // Reset scores
   lobby.players.forEach(p => p.score = 0);
   startQuestionPhase(lobby);
 }
@@ -110,6 +134,7 @@ function startQuestionPhase(lobby) {
   lobby.votes = { best: new Map(), funniest: new Map() };
   lobby.shuffledAnswers = [];
   lobby.revealIndex = 0;
+  lobby.guessResults = null;
 
   const guesser = getGuesser(lobby);
   const turnNumber = lobby.currentGuesserIdx + 1;
@@ -126,7 +151,6 @@ function startQuestionPhase(lobby) {
   });
 
   startTimer(lobby, TIMER_QUESTION, () => {
-    // Time's up — if no question, use a default
     if (!lobby.currentQuestion) {
       lobby.currentQuestion = "What's the best thing about being alive?";
     }
@@ -144,7 +168,6 @@ function startAnswerPhase(lobby) {
   });
 
   startTimer(lobby, TIMER_ANSWER, () => {
-    // Fill in blanks for anyone who didn't answer
     const answerers = getAnswerers(lobby);
     answerers.forEach(p => {
       if (!lobby.answers.has(p.id)) {
@@ -156,7 +179,6 @@ function startAnswerPhase(lobby) {
 }
 
 function startRevealPhase(lobby) {
-  // Shuffle answers so guesser can't tell by order
   const entries = [];
   for (const [playerId, text] of lobby.answers) {
     entries.push({ id: generateId(), text, playerId });
@@ -173,7 +195,6 @@ function startRevealPhase(lobby) {
     guesser: { id: getGuesser(lobby).id, name: getGuesser(lobby).name },
   });
 
-  // Send first answer
   sendRevealAnswer(lobby);
 }
 
@@ -194,7 +215,6 @@ function startGuessingPhase(lobby) {
   const answerers = getAnswerers(lobby);
   const timerSeconds = TIMER_PER_PLAYER * answerers.length;
 
-  // Send all answers (without playerIds) and player list
   const answers = lobby.shuffledAnswers.map(a => ({ id: a.id, text: a.text }));
   const players = answerers.map(p => ({ id: p.id, name: p.name }));
 
@@ -208,7 +228,6 @@ function startGuessingPhase(lobby) {
   });
 
   startTimer(lobby, timerSeconds, () => {
-    // Time's up, score whatever they have
     scoreGuesses(lobby);
   });
 }
@@ -232,7 +251,6 @@ function startVotingPhase(lobby) {
 }
 
 function tallyVotes(lobby) {
-  // Count votes for best and funniest
   const bestCounts = new Map();
   const funniestCounts = new Map();
 
@@ -243,7 +261,6 @@ function tallyVotes(lobby) {
     funniestCounts.set(answerId, (funniestCounts.get(answerId) || 0) + 1);
   }
 
-  // Find winners
   let bestAnswerId = null, bestMax = 0;
   for (const [id, count] of bestCounts) {
     if (count > bestMax) { bestMax = count; bestAnswerId = id; }
@@ -253,7 +270,6 @@ function tallyVotes(lobby) {
     if (count > funniestMax) { funniestMax = count; funniestAnswerId = id; }
   }
 
-  // Award bonus points
   if (bestAnswerId) {
     const answer = lobby.shuffledAnswers.find(a => a.id === bestAnswerId);
     if (answer) {
@@ -293,10 +309,7 @@ function scoreGuesses(lobby) {
     });
   }
 
-  // Award points: 1 per correct guess
   guesser.score += correct;
-
-  // Move to voting phase
   lobby.guessResults = { correct, total: lobby.shuffledAnswers.length, results };
   startVotingPhase(lobby);
 }
@@ -327,7 +340,6 @@ function showResults(lobby, bestAnswerId, funniestAnswerId) {
 function nextTurn(lobby) {
   lobby.currentGuesserIdx++;
   if (lobby.currentGuesserIdx >= lobby.guesserOrder.length) {
-    // Game over!
     lobby.phase = 'gameover';
     broadcastToLobby(lobby, {
       type: 'phase',
@@ -340,7 +352,7 @@ function nextTurn(lobby) {
   }
 }
 
-// ─── WEBSOCKET SERVER ──────────────────────────────────────────────
+// ─── WEBSOCKET ─────────────────────────────────────────────────────
 const clients = new Map(); // ws -> { id, lobbyCode, name }
 
 function broadcastToLobby(lobby, msg) {
@@ -365,6 +377,26 @@ function broadcastLobbyState(lobby) {
   });
 }
 
+function handleDisconnect(ws) {
+  const client = clients.get(ws);
+  if (client) {
+    console.log(`  ← Player ${client.name} disconnected`);
+    const lobby = lobbies.get(client.lobbyCode);
+    if (lobby) {
+      const player = lobby.players.find(p => p.id === client.id);
+      if (player) player.connected = false;
+      broadcastLobbyState(lobby);
+      if (lobby.players.every(p => !p.connected)) {
+        clearTimer(lobby);
+        lobbies.delete(lobby.code);
+        console.log(`  🗑  Lobby ${lobby.code} removed (empty)`);
+      }
+    }
+    clients.delete(ws);
+  }
+}
+
+// ─── MESSAGE HANDLER ───────────────────────────────────────────────
 function handleMessage(ws, data) {
   let msg;
   try { msg = JSON.parse(data); } catch { return; }
@@ -377,6 +409,7 @@ function handleMessage(ws, data) {
       const name = (msg.name || 'Player').slice(0, 20);
       const lobby = createLobby(id, name);
       clients.set(ws, { id, lobbyCode: lobby.code, name });
+      console.log(`  + ${name} created lobby ${lobby.code}`);
       sendTo(ws, { type: 'joined', playerId: id, lobbyCode: lobby.code, isHost: true });
       broadcastLobbyState(lobby);
       break;
@@ -385,22 +418,15 @@ function handleMessage(ws, data) {
     case 'join_lobby': {
       const code = (msg.code || '').toUpperCase().trim();
       const lobby = lobbies.get(code);
-      if (!lobby) {
-        sendTo(ws, { type: 'error', message: 'Lobby not found' });
-        return;
-      }
-      if (lobby.phase !== 'lobby') {
-        sendTo(ws, { type: 'error', message: 'Game already in progress' });
-        return;
-      }
-      if (lobby.players.length >= 10) {
-        sendTo(ws, { type: 'error', message: 'Lobby is full (max 10)' });
-        return;
-      }
+      if (!lobby) return sendTo(ws, { type: 'error', message: 'Lobby not found' });
+      if (lobby.phase !== 'lobby') return sendTo(ws, { type: 'error', message: 'Game already in progress' });
+      if (lobby.players.length >= 10) return sendTo(ws, { type: 'error', message: 'Lobby is full (max 10)' });
+
       const id = generateId();
       const name = (msg.name || 'Player').slice(0, 20);
       lobby.players.push({ id, name, score: 0, connected: true });
       clients.set(ws, { id, lobbyCode: code, name });
+      console.log(`  + ${name} joined lobby ${code}`);
       sendTo(ws, { type: 'joined', playerId: id, lobbyCode: code, isHost: false });
       broadcastLobbyState(lobby);
       break;
@@ -410,10 +436,8 @@ function handleMessage(ws, data) {
       if (!client) return;
       const lobby = lobbies.get(client.lobbyCode);
       if (!lobby || lobby.hostId !== client.id) return;
-      if (lobby.players.length < 3) {
-        sendTo(ws, { type: 'error', message: 'Need at least 3 players' });
-        return;
-      }
+      if (lobby.players.length < 3) return sendTo(ws, { type: 'error', message: 'Need at least 3 players' });
+      console.log(`  ▶ Game started in lobby ${lobby.code} with ${lobby.players.length} players`);
       startGame(lobby);
       break;
     }
@@ -422,8 +446,7 @@ function handleMessage(ws, data) {
       if (!client) return;
       const lobby = lobbies.get(client.lobbyCode);
       if (!lobby || lobby.phase !== 'question') return;
-      const guesser = getGuesser(lobby);
-      if (guesser.id !== client.id) return;
+      if (getGuesser(lobby).id !== client.id) return;
       lobby.currentQuestion = (msg.question || '').slice(0, 200);
       clearTimer(lobby);
       startAnswerPhase(lobby);
@@ -434,18 +457,15 @@ function handleMessage(ws, data) {
       if (!client) return;
       const lobby = lobbies.get(client.lobbyCode);
       if (!lobby || lobby.phase !== 'answering') return;
-      const guesserId = getGuesser(lobby).id;
-      if (client.id === guesserId) return; // guesser can't answer
+      if (client.id === getGuesser(lobby).id) return;
       lobby.answers.set(client.id, (msg.answer || '').slice(0, 300));
       sendTo(ws, { type: 'answer_submitted' });
 
-      // Check if all answerers have submitted
       const answerers = getAnswerers(lobby);
       if (answerers.every(p => lobby.answers.has(p.id))) {
         clearTimer(lobby);
         startRevealPhase(lobby);
       } else {
-        // Let everyone know progress
         broadcastToLobby(lobby, {
           type: 'answer_progress',
           submitted: lobby.answers.size,
@@ -462,7 +482,6 @@ function handleMessage(ws, data) {
       if (getGuesser(lobby).id !== client.id) return;
       lobby.revealIndex++;
       if (lobby.revealIndex >= lobby.shuffledAnswers.length) {
-        // All revealed, move to guessing
         startGuessingPhase(lobby);
       } else {
         sendRevealAnswer(lobby);
@@ -475,7 +494,6 @@ function handleMessage(ws, data) {
       const lobby = lobbies.get(client.lobbyCode);
       if (!lobby || lobby.phase !== 'guessing') return;
       if (getGuesser(lobby).id !== client.id) return;
-      // msg.guesses = { answerId: playerId, ... }
       lobby.guesses = new Map(Object.entries(msg.guesses || {}));
       clearTimer(lobby);
       scoreGuesses(lobby);
@@ -492,8 +510,6 @@ function handleMessage(ws, data) {
       if (msg.category === 'funniest' && msg.answerId) {
         lobby.votes.funniest.set(client.id, msg.answerId);
       }
-
-      // Check if all players voted for both
       const allVoted = lobby.players.every(p =>
         lobby.votes.best.has(p.id) && lobby.votes.funniest.has(p.id)
       );
@@ -526,150 +542,11 @@ function handleMessage(ws, data) {
   }
 }
 
-// ─── RAW WEBSOCKET IMPLEMENTATION ──────────────────────────────────
-function acceptWebSocket(req, socket) {
-  const key = req.headers['sec-websocket-key'];
-  const accept = crypto
-    .createHash('sha1')
-    .update(key + '258EAFA5-E914-47DA-95CA-5AB5A04DF50A')
-    .digest('base64');
-
-  socket.write(
-    'HTTP/1.1 101 Switching Protocols\r\n' +
-    'Upgrade: websocket\r\n' +
-    'Connection: Upgrade\r\n' +
-    `Sec-WebSocket-Accept: ${accept}\r\n` +
-    '\r\n'
-  );
-
-  // Minimal WS framing
-  const ws = {
-    readyState: 1,
-    send(data) {
-      if (ws.readyState !== 1) return;
-      const buf = Buffer.from(data);
-      let header;
-      if (buf.length < 126) {
-        header = Buffer.alloc(2);
-        header[0] = 0x81;
-        header[1] = buf.length;
-      } else if (buf.length < 65536) {
-        header = Buffer.alloc(4);
-        header[0] = 0x81;
-        header[1] = 126;
-        header.writeUInt16BE(buf.length, 2);
-      } else {
-        header = Buffer.alloc(10);
-        header[0] = 0x81;
-        header[1] = 127;
-        header.writeBigUInt64BE(BigInt(buf.length), 2);
-      }
-      try { socket.write(Buffer.concat([header, buf])); } catch {}
-    },
-    close() {
-      ws.readyState = 3;
-      try {
-        const buf = Buffer.alloc(2);
-        buf[0] = 0x88;
-        buf[1] = 0;
-        socket.write(buf);
-        socket.end();
-      } catch {}
-    }
-  };
-
-  let buffer = Buffer.alloc(0);
-
-  socket.on('data', (chunk) => {
-    buffer = Buffer.concat([buffer, chunk]);
-
-    while (buffer.length >= 2) {
-      const firstByte = buffer[0];
-      const opcode = firstByte & 0x0f;
-      const masked = (buffer[1] & 0x80) !== 0;
-      let payloadLen = buffer[1] & 0x7f;
-      let offset = 2;
-
-      if (payloadLen === 126) {
-        if (buffer.length < 4) return;
-        payloadLen = buffer.readUInt16BE(2);
-        offset = 4;
-      } else if (payloadLen === 127) {
-        if (buffer.length < 10) return;
-        payloadLen = Number(buffer.readBigUInt64BE(2));
-        offset = 10;
-      }
-
-      const maskSize = masked ? 4 : 0;
-      const totalLen = offset + maskSize + payloadLen;
-      if (buffer.length < totalLen) return;
-
-      let payload = buffer.slice(offset + maskSize, totalLen);
-      if (masked) {
-        const mask = buffer.slice(offset, offset + 4);
-        for (let i = 0; i < payload.length; i++) {
-          payload[i] ^= mask[i % 4];
-        }
-      }
-
-      buffer = buffer.slice(totalLen);
-
-      if (opcode === 0x08) {
-        // Close
-        ws.readyState = 3;
-        handleDisconnect(ws);
-        socket.end();
-        return;
-      } else if (opcode === 0x09) {
-        // Ping -> Pong
-        const pong = Buffer.alloc(2);
-        pong[0] = 0x8A;
-        pong[1] = 0;
-        try { socket.write(pong); } catch {}
-      } else if (opcode === 0x01) {
-        // Text
-        handleMessage(ws, payload.toString('utf8'));
-      }
-    }
-  });
-
-  socket.on('close', () => {
-    ws.readyState = 3;
-    handleDisconnect(ws);
-  });
-
-  socket.on('error', () => {
-    ws.readyState = 3;
-    handleDisconnect(ws);
-  });
-
-  return ws;
-}
-
-function handleDisconnect(ws) {
-  const client = clients.get(ws);
-  if (client) {
-    const lobby = lobbies.get(client.lobbyCode);
-    if (lobby) {
-      const player = lobby.players.find(p => p.id === client.id);
-      if (player) player.connected = false;
-      broadcastLobbyState(lobby);
-
-      // Clean up empty lobbies
-      if (lobby.players.every(p => !p.connected)) {
-        clearTimer(lobby);
-        lobbies.delete(lobby.code);
-      }
-    }
-    clients.delete(ws);
-  }
-}
-
 // ─── HTTP SERVER ───────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
   if (req.url === '/' || req.url === '/index.html') {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(fs.readFileSync(path.join(__dirname, 'client', 'index.html')));
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(clientHtml);
   } else if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: 'ok', lobbies: lobbies.size }));
@@ -679,15 +556,31 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.on('upgrade', (req, socket, head) => {
-  if (req.headers.upgrade?.toLowerCase() === 'websocket') {
-    const ws = acceptWebSocket(req, socket);
-    // ws is now tracked in handleMessage when they join/create
-  } else {
-    socket.destroy();
-  }
+// ─── WEBSOCKET SERVER (using ws package) ───────────────────────────
+const wss = new WebSocketServer({ server });
+
+wss.on('connection', (ws) => {
+  console.log('  ✔ New WebSocket connection');
+
+  ws.on('message', (data) => {
+    handleMessage(ws, data.toString());
+  });
+
+  ws.on('close', () => {
+    handleDisconnect(ws);
+  });
+
+  ws.on('error', (err) => {
+    console.error('  ❌ WS error:', err.message);
+    handleDisconnect(ws);
+  });
 });
 
+// ─── START ─────────────────────────────────────────────────────────
 server.listen(PORT, () => {
-  console.log(`\n  🎮  WhoDat? Game Server running at http://localhost:${PORT}\n`);
+  console.log('');
+  console.log('  🎮  WhoDat? Game Server');
+  console.log(`  🌐  http://localhost:${PORT}`);
+  console.log('  📋  Share the lobby code with friends on your network');
+  console.log('');
 });

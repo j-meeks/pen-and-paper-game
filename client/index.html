@@ -5,25 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WhoDat? — The Party Guessing Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0f0a1e;
-  --surface: #1a1333;
-  --surface2: #251d42;
-  --accent: #f72585;
-  --accent2: #7209b7;
-  --accent3: #4cc9f0;
-  --accent4: #f9c74f;
-  --green: #06d6a0;
-  --red: #ef476f;
-  --text: #f0e6ff;
-  --text-dim: #8b7faa;
-  --radius: 16px;
-  --font-display: 'Lilita One', cursive;
-  --font-body: 'Nunito', sans-serif;
+  --bg: #F6F5F0;
+  --surface: #FFFFFF;
+  --surface-alt: #EEEDEA;
+  --border: #D8D6D0;
+  --border-light: #E8E7E3;
+
+  --green: #1A8C4E;
+  --green-light: #E8F5EE;
+  --green-dark: #14693A;
+  --green-bright: #22C55E;
+
+  --purple: #2D1B4E;
+  --purple-mid: #4A3270;
+  --purple-light: #F0ECF5;
+  --purple-faint: #E8E2F0;
+
+  --text: #1C1917;
+  --text-secondary: #78716C;
+  --text-muted: #A8A29E;
+
+  --red: #DC2626;
+  --red-light: #FEF2F2;
+  --amber: #D97706;
+  --amber-light: #FFFBEB;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-full: 100px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+
+  --font-display: 'Bricolage Grotesque', serif;
+  --font-body: 'DM Sans', sans-serif;
 }
 
 html { height: 100%; }
@@ -34,17 +54,14 @@ body {
   color: var(--text);
   min-height: 100%;
   overflow-x: hidden;
-  background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(114, 9, 183, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(247, 37, 133, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(76, 201, 240, 0.08) 0%, transparent 50%);
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ─── LAYOUT ─────────────────────────────────────────── */
 #app {
-  max-width: 680px;
+  max-width: 560px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -56,82 +73,74 @@ body {
 /* ─── LOGO ───────────────────────────────────────────── */
 .logo {
   font-family: var(--font-display);
-  font-size: 3.5rem;
+  font-size: 3.2rem;
+  font-weight: 800;
   text-align: center;
-  margin: 40px 0 8px;
-  background: linear-gradient(135deg, var(--accent), var(--accent3));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 4px 24px rgba(247, 37, 133, 0.3));
-  animation: logoPulse 3s ease-in-out infinite;
+  margin: 48px 0 4px;
+  color: var(--purple);
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
-@keyframes logoPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
+.logo span {
+  color: var(--green);
 }
 
 .logo-sub {
   text-align: center;
-  color: var(--text-dim);
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 40px;
-  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 36px;
 }
 
-/* ─── CARDS & PANELS ─────────────────────────────────── */
+/* ─── CARDS ──────────────────────────────────────────── */
 .card {
   background: var(--surface);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  padding: 28px;
+  padding: 24px;
   width: 100%;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  box-shadow: var(--shadow-sm);
 }
 
-.card + .card { margin-top: 16px; }
+.card + .card { margin-top: 12px; }
 
 /* ─── INPUTS ─────────────────────────────────────────── */
 input[type="text"], textarea {
   width: 100%;
-  padding: 14px 18px;
-  background: var(--surface2);
-  border: 2px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input[type="text"]:focus, textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.2);
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-light);
 }
 
-textarea {
-  resize: none;
-  min-height: 100px;
-}
+textarea { resize: none; min-height: 96px; line-height: 1.5; }
 
-::placeholder { color: var(--text-dim); }
+::placeholder { color: var(--text-muted); }
 
 label {
   display: block;
-  font-weight: 700;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-.input-group + .input-group { margin-top: 16px; }
+.input-group + .input-group { margin-top: 14px; }
 
 /* ─── BUTTONS ────────────────────────────────────────── */
 .btn {
@@ -139,82 +148,79 @@ label {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 28px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-family: var(--font-body);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  transition: all 0.15s;
+  letter-spacing: 0.01em;
 }
 
-.btn:active { transform: scale(0.96); }
+.btn:active { transform: scale(0.97); }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  background: var(--green);
   color: white;
-  box-shadow: 0 4px 20px rgba(247, 37, 133, 0.3);
 }
-.btn-primary:hover { box-shadow: 0 6px 28px rgba(247, 37, 133, 0.5); transform: translateY(-1px); }
+.btn-primary:hover { background: var(--green-dark); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .btn-secondary {
-  background: var(--surface2);
+  background: var(--surface);
   color: var(--text);
-  border: 2px solid rgba(255,255,255,0.1);
+  border: 1.5px solid var(--border);
 }
-.btn-secondary:hover { border-color: var(--accent3); }
+.btn-secondary:hover { border-color: var(--green); color: var(--green); }
 
-.btn-accent {
-  background: linear-gradient(135deg, var(--accent3), #3a86ff);
+.btn-purple {
+  background: var(--purple);
   color: white;
-  box-shadow: 0 4px 20px rgba(76, 201, 240, 0.3);
 }
+.btn-purple:hover { background: var(--purple-mid); }
 
-.btn-green {
-  background: linear-gradient(135deg, var(--green), #049e76);
-  color: white;
-  box-shadow: 0 4px 20px rgba(6, 214, 160, 0.3);
+.btn-outline-green {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: 1.5px solid var(--green);
 }
 
 .btn-full { width: 100%; }
-.btn + .btn { margin-top: 10px; }
+.btn + .btn { margin-top: 8px; }
 
 /* ─── TIMER ──────────────────────────────────────────── */
 .timer-bar {
   width: 100%;
-  height: 6px;
-  background: var(--surface2);
-  border-radius: 3px;
-  margin: 16px 0;
+  height: 4px;
+  background: var(--surface-alt);
+  border-radius: 2px;
+  margin: 14px 0;
   overflow: hidden;
 }
 
 .timer-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent3), var(--accent));
-  border-radius: 3px;
+  background: var(--green);
+  border-radius: 2px;
   transition: width 0.5s linear;
 }
 
 .timer-bar-fill.urgent {
-  background: linear-gradient(90deg, var(--accent4), var(--red));
-  animation: timerFlash 0.5s ease-in-out infinite;
+  background: var(--red);
+  animation: timerFlash 0.6s ease-in-out infinite;
 }
 
-@keyframes timerFlash {
-  50% { opacity: 0.7; }
-}
+@keyframes timerFlash { 50% { opacity: 0.6; } }
 
 .timer-text {
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 800;
   font-family: var(--font-display);
-  color: var(--accent3);
+  color: var(--green);
+  letter-spacing: -0.02em;
 }
 
 .timer-text.urgent { color: var(--red); }
@@ -222,98 +228,107 @@ label {
 /* ─── PHASE HEADER ───────────────────────────────────── */
 .phase-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   width: 100%;
 }
 
 .phase-tag {
   display: inline-block;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   margin-bottom: 8px;
 }
 
-.phase-tag.question { background: rgba(247, 37, 133, 0.2); color: var(--accent); }
-.phase-tag.answering { background: rgba(76, 201, 240, 0.2); color: var(--accent3); }
-.phase-tag.reveal { background: rgba(249, 199, 79, 0.2); color: var(--accent4); }
-.phase-tag.guessing { background: rgba(114, 9, 183, 0.2); color: #b57edc; }
-.phase-tag.voting { background: rgba(6, 214, 160, 0.2); color: var(--green); }
+.phase-tag.question { background: var(--green-light); color: var(--green-dark); }
+.phase-tag.answering { background: var(--purple-light); color: var(--purple); }
+.phase-tag.reveal { background: var(--amber-light); color: var(--amber); }
+.phase-tag.guessing { background: var(--purple-faint); color: var(--purple-mid); }
+.phase-tag.voting { background: var(--green-light); color: var(--green); }
 
 .phase-title {
   font-family: var(--font-display);
-  font-size: 1.8rem;
-  margin-bottom: 4px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--purple);
+  letter-spacing: -0.02em;
 }
 
 .phase-subtitle {
-  color: var(--text-dim);
-  font-weight: 600;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 .turn-info {
-  font-size: 0.85rem;
-  color: var(--text-dim);
+  font-size: 0.8rem;
+  color: var(--text-muted);
   margin-top: 4px;
+  font-weight: 500;
 }
 
 /* ─── QUESTION DISPLAY ───────────────────────────────── */
 .question-display {
-  background: linear-gradient(135deg, rgba(247,37,133,0.1), rgba(114,9,183,0.1));
-  border: 1px solid rgba(247, 37, 133, 0.2);
+  background: var(--purple);
+  color: white;
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 20px 24px;
   text-align: center;
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 600;
   margin: 12px 0;
   width: 100%;
+  line-height: 1.4;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 /* ─── ANSWER CARDS ───────────────────────────────────── */
 .answer-card {
-  background: var(--surface2);
-  border: 2px solid rgba(255,255,255,0.06);
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 16px 20px;
   margin: 8px 0;
   width: 100%;
-  font-size: 1.05rem;
-  font-weight: 600;
-  animation: slideUp 0.4s ease-out;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  animation: slideUp 0.35s ease-out;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .answer-card.reveal-anim {
-  animation: revealPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: revealPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes revealPop {
-  0% { opacity: 0; transform: scale(0.8) rotateX(20deg); }
-  100% { opacity: 1; transform: scale(1) rotateX(0); }
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .answer-number {
   position: absolute;
-  top: -10px;
-  left: -10px;
-  width: 28px;
-  height: 28px;
-  background: var(--accent);
+  top: -8px;
+  left: -8px;
+  width: 24px;
+  height: 24px;
+  background: var(--purple);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: white;
 }
 
@@ -321,180 +336,197 @@ label {
 .player-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--surface2);
-  border: 2px solid rgba(255,255,255,0.08);
-  border-radius: 30px;
-  font-weight: 700;
-  font-size: 0.9rem;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   user-select: none;
 }
 
-.player-chip:hover { border-color: var(--accent3); }
-.player-chip.selected { border-color: var(--accent); background: rgba(247,37,133,0.15); }
-.player-chip.assigned { opacity: 0.35; pointer-events: none; }
-.player-chip .avatar { font-size: 1.2rem; }
+.player-chip:hover { border-color: var(--green); }
+.player-chip.selected { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+.player-chip.assigned { opacity: 0.3; pointer-events: none; }
+.player-chip .avatar { font-size: 1rem; }
 
 .player-list-lobby {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 16px 0;
+  gap: 8px;
+  margin: 12px 0;
 }
 
 /* ─── GUESS MATCHING ─────────────────────────────────── */
 .guess-row {
   display: flex;
   align-items: stretch;
-  gap: 12px;
-  margin: 8px 0;
+  gap: 10px;
+  margin: 6px 0;
   width: 100%;
   animation: slideUp 0.3s ease-out;
 }
 
 .guess-answer {
   flex: 1;
-  background: var(--surface2);
-  border-radius: 12px;
-  padding: 14px;
-  font-weight: 600;
-  font-size: 0.95rem;
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-weight: 500;
+  font-size: 0.88rem;
   display: flex;
   align-items: center;
-  min-height: 56px;
+  min-height: 48px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  line-height: 1.3;
 }
 
-.guess-arrow { color: var(--text-dim); display: flex; align-items: center; font-size: 1.2rem; }
+.guess-answer:hover { border-color: var(--green); }
+.guess-answer.selected { border-color: var(--green); background: var(--green-light); }
+
+.guess-arrow {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
 
 .guess-player-slot {
-  min-width: 140px;
-  background: var(--surface);
-  border: 2px dashed rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 10px 14px;
+  min-width: 130px;
+  background: var(--bg);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text-dim);
+  transition: all 0.15s;
+  color: var(--text-muted);
 }
 
 .guess-player-slot.filled {
   border-style: solid;
-  border-color: var(--accent);
-  color: var(--text);
-  background: rgba(247,37,133,0.1);
+  border-color: var(--green);
+  color: var(--green-dark);
+  background: var(--green-light);
 }
 
-.guess-player-slot:hover { border-color: var(--accent3); }
+.guess-player-slot:hover { border-color: var(--green); }
 
 /* ─── RESULTS ────────────────────────────────────────── */
 .result-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  margin: 6px 0;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin: 4px 0;
   width: 100%;
   animation: slideUp 0.3s ease-out;
+  font-size: 0.9rem;
 }
 
-.result-row.correct { background: rgba(6, 214, 160, 0.1); border-left: 4px solid var(--green); }
-.result-row.wrong { background: rgba(239, 71, 111, 0.1); border-left: 4px solid var(--red); }
+.result-row.correct { background: var(--green-light); border-left: 3px solid var(--green); }
+.result-row.wrong { background: var(--red-light); border-left: 3px solid var(--red); }
 
-.result-icon { font-size: 1.3rem; }
-.result-answer { flex: 1; font-weight: 600; }
-.result-player { font-weight: 700; color: var(--accent3); }
+.result-icon { font-size: 1.1rem; }
+.result-answer { flex: 1; font-weight: 500; }
+.result-player { font-weight: 700; color: var(--green-dark); }
 
 /* ─── SCOREBOARD ─────────────────────────────────────── */
 .score-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
-  border-radius: 12px;
-  margin: 6px 0;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin: 4px 0;
   width: 100%;
-  background: var(--surface2);
+  background: var(--bg);
   animation: slideUp 0.3s ease-out;
 }
 
 .score-row:first-child {
-  background: linear-gradient(135deg, rgba(249,199,79,0.15), rgba(247,37,133,0.1));
-  border: 1px solid rgba(249, 199, 79, 0.3);
+  background: var(--green-light);
+  border: 1.5px solid var(--green);
 }
 
 .score-rank {
   font-family: var(--font-display);
-  font-size: 1.4rem;
-  min-width: 40px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  min-width: 36px;
   text-align: center;
+  color: var(--purple);
 }
 
-.score-name { flex: 1; font-weight: 700; font-size: 1.05rem; }
+.score-name { flex: 1; font-weight: 600; font-size: 0.95rem; }
 .score-points {
   font-family: var(--font-display);
-  font-size: 1.3rem;
-  color: var(--accent4);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--green);
 }
 
 /* ─── VOTE BUTTONS ───────────────────────────────────── */
-.vote-section { margin: 16px 0; width: 100%; }
+.vote-section { margin: 14px 0; width: 100%; }
 .vote-section h3 {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  margin-bottom: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  color: var(--purple);
 }
 
 .vote-option {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--surface2);
-  border: 2px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  margin: 6px 0;
+  margin: 5px 0;
   text-align: left;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
-.vote-option:hover { border-color: var(--accent3); }
-.vote-option.voted { border-color: var(--green); background: rgba(6, 214, 160, 0.1); }
+.vote-option:hover { border-color: var(--green); }
+.vote-option.voted { border-color: var(--green); background: var(--green-light); color: var(--green-dark); font-weight: 600; }
 
 /* ─── LOBBY CODE ─────────────────────────────────────── */
 .lobby-code {
   font-family: var(--font-display);
-  font-size: 3rem;
-  letter-spacing: 0.15em;
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-align: center;
-  background: linear-gradient(135deg, var(--accent4), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--green);
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: opacity 0.15s;
 }
-.lobby-code:hover { transform: scale(1.05); }
+.lobby-code:hover { opacity: 0.7; }
 
 .lobby-code-label {
   text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-dim);
-  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-weight: 500;
 }
 
 /* ─── WAITING DOTS ───────────────────────────────────── */
@@ -509,77 +541,84 @@ label {
   75% { content: '...'; }
 }
 
-/* ─── CROWN ──────────────────────────────────────────── */
-.crown { font-size: 1.4rem; }
-
 /* ─── GAME OVER ──────────────────────────────────────── */
 .winner-banner {
   text-align: center;
-  padding: 30px;
-  background: linear-gradient(135deg, rgba(249,199,79,0.1), rgba(247,37,133,0.1));
-  border: 2px solid rgba(249, 199, 79, 0.3);
+  padding: 28px;
+  background: var(--green-light);
+  border: 2px solid var(--green);
   border-radius: var(--radius);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   width: 100%;
 }
 
 .winner-name {
   font-family: var(--font-display);
-  font-size: 2.5rem;
-  background: linear-gradient(135deg, var(--accent4), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--purple);
+  letter-spacing: -0.02em;
 }
+
+/* ─── STATUS BADGES ──────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-badge.host { background: var(--amber-light); color: var(--amber); }
+.status-badge.you { background: var(--green-light); color: var(--green); }
+.status-badge.disconnected { background: var(--red-light); color: var(--red); }
 
 /* ─── TOAST ──────────────────────────────────────────── */
 .toast {
   position: fixed;
-  bottom: 30px;
+  bottom: 24px;
   left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background: var(--surface);
-  border: 1px solid var(--accent);
-  border-radius: 12px;
-  padding: 12px 24px;
-  font-weight: 700;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--purple);
+  color: white;
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 0.88rem;
   z-index: 1000;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-md);
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
-/* ─── STATUS ─────────────────────────────────────────── */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
+/* ─── HELPER TEXT ────────────────────────────────────── */
+.hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 8px;
 }
-
-.status-badge.host { background: rgba(249,199,79,0.2); color: var(--accent4); }
-.status-badge.you { background: rgba(76,201,240,0.2); color: var(--accent3); }
-.status-badge.disconnected { background: rgba(239,71,111,0.2); color: var(--red); }
 
 /* ─── RESPONSIVE ─────────────────────────────────────── */
 @media (max-width: 500px) {
-  .logo { font-size: 2.5rem; }
-  .card { padding: 20px; }
-  .guess-row { flex-direction: column; gap: 6px; }
+  .logo { font-size: 2.4rem; }
+  .card { padding: 18px; }
+  .guess-row { flex-direction: column; gap: 4px; }
   .guess-arrow { transform: rotate(90deg); justify-content: center; }
   .guess-player-slot { min-width: 100%; }
-  .lobby-code { font-size: 2.2rem; }
+  .lobby-code { font-size: 2rem; }
 }
 
 /* ─── CONFETTI ───────────────────────────────────────── */
 .confetti-piece {
   position: fixed;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   top: -10px;
   z-index: 999;
   animation: confettiFall 3s linear forwards;
@@ -588,21 +627,195 @@ label {
 @keyframes confettiFall {
   to { top: 110vh; transform: rotateZ(720deg); opacity: 0; }
 }
+
+/* ─── DIVIDER ────────────────────────────────────────── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-light);
+  margin: 16px 0;
+}
+
+/* ─── MODAL OVERLAY ──────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.14);
+  width: 100%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.open .modal {
+  transform: translateY(0) scale(1);
+}
+
+.modal-header {
+  padding: 24px 24px 0;
+  text-align: center;
+}
+
+.modal-header .emoji {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+.modal-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--purple);
+  letter-spacing: -0.02em;
+}
+
+.modal-header p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.modal-body {
+  padding: 20px 24px 24px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  padding: 0 24px 24px;
+}
+
+.modal-actions .btn { flex: 1; }
+
+/* ─── RULES CONTENT ──────────────────────────────────── */
+.rules-step {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+}
+
+.rules-step + .rules-step {
+  border-top: 1px solid var(--border-light);
+}
+
+.rules-step-num {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  font-family: var(--font-display);
+}
+
+.rules-step-text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.rules-step-text strong {
+  color: var(--purple);
+  font-weight: 700;
+}
+
+.rules-scoring {
+  background: var(--purple-light);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-top: 4px;
+}
+
+.rules-scoring-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--purple);
+  margin-bottom: 8px;
+}
+
+.rules-scoring-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 3px 0;
+}
+
+.rules-scoring-item span {
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* ─── HOW TO PLAY LINK ───────────────────────────────── */
+.how-to-play-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-top: 12px;
+  transition: color 0.15s;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+}
+
+.how-to-play-link:hover { color: var(--green); }
+
+.how-to-play-link svg {
+  width: 16px;
+  height: 16px;
+}
 </style>
 </head>
 <body>
 <div id="app">
   <!-- ═══ SCREEN: HOME ═══ -->
   <div id="screen-home" class="screen active">
-    <div class="logo">WhoDat?</div>
-    <div class="logo-sub">The Party Guessing Game</div>
+    <div class="logo">Who<span>Dat</span>?</div>
+    <div class="logo-sub">Guess who said what</div>
 
     <div class="card">
       <div class="input-group">
         <label>Your Name</label>
-        <input type="text" id="input-name" placeholder="Enter your name..." maxlength="20" autocomplete="off">
+        <input type="text" id="input-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
       </div>
-      <div style="margin-top: 20px;">
+      <div style="margin-top: 18px;">
         <button class="btn btn-primary btn-full" id="btn-create">Create Lobby</button>
         <button class="btn btn-secondary btn-full" id="btn-show-join">Join a Lobby</button>
       </div>
@@ -611,38 +824,108 @@ label {
     <div class="card" id="join-section" style="display:none;">
       <div class="input-group">
         <label>Lobby Code</label>
-        <input type="text" id="input-code" placeholder="ABCDE" maxlength="5" autocomplete="off" style="text-transform: uppercase; text-align: center; font-size: 1.3rem; letter-spacing: 0.1em;">
+        <input type="text" id="input-code" placeholder="ABCDE" maxlength="5" autocomplete="off" style="text-transform: uppercase; text-align: center; font-size: 1.2rem; letter-spacing: 0.1em; font-weight: 700;">
       </div>
-      <button class="btn btn-accent btn-full" id="btn-join" style="margin-top: 16px;">Join Game</button>
+      <button class="btn btn-purple btn-full" id="btn-join" style="margin-top: 14px;">Join Game</button>
     </div>
+
+    <button class="how-to-play-link" id="btn-how-to-play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      How to Play
+    </button>
   </div>
 
   <!-- ═══ SCREEN: LOBBY ═══ -->
   <div id="screen-lobby" class="screen">
-    <div class="logo" style="font-size: 2rem; margin: 20px 0 4px;">WhoDat?</div>
+    <div class="logo" style="font-size: 1.6rem; margin: 16px 0 4px;">Who<span>Dat</span>?</div>
     <div class="card" style="text-align: center;">
-      <div style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em;">Lobby Code</div>
+      <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em;">Lobby Code</div>
       <div class="lobby-code" id="display-code" title="Click to copy"></div>
-      <div class="lobby-code-label">click to copy • share with friends</div>
+      <div class="lobby-code-label">tap to copy · share with friends</div>
     </div>
 
     <div class="card">
-      <label>Players (<span id="player-count">0</span>/10)</label>
+      <label>Players <span id="player-count">0</span>/10</label>
       <div class="player-list-lobby" id="player-list"></div>
     </div>
 
-    <div id="host-controls" style="width: 100%; margin-top: 16px; display: none;">
+    <div id="host-controls" style="width: 100%; margin-top: 12px; display: none;">
       <button class="btn btn-primary btn-full" id="btn-start" disabled>Need at least 3 players</button>
     </div>
 
     <div id="guest-waiting" style="text-align: center; margin-top: 20px; display: none;">
-      <p class="waiting-dots" style="color: var(--text-dim); font-weight: 600;">Waiting for host to start</p>
+      <p class="waiting-dots" style="color: var(--text-secondary); font-weight: 600;">Waiting for host to start</p>
     </div>
   </div>
 
   <!-- ═══ SCREEN: GAME ═══ -->
   <div id="screen-game" class="screen">
     <div id="game-content" style="width: 100%;"></div>
+  </div>
+</div>
+
+<!-- Welcome Modal -->
+<div class="modal-overlay" id="modal-welcome">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="emoji">👋</div>
+      <h2>Welcome to WhoDat?</h2>
+      <p>The party guessing game</p>
+    </div>
+    <div class="modal-body" style="text-align: center; padding-bottom: 8px;">
+      <p style="font-size: 0.95rem; font-weight: 500; color: var(--text-secondary);">Have you played before?</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-welcome-no">Nope, show me!</button>
+      <button class="btn btn-primary" id="btn-welcome-yes">Yep, let's go!</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rules Modal -->
+<div class="modal-overlay" id="modal-rules">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="emoji">📖</div>
+      <h2>How to Play</h2>
+      <p>It's simple — here's the rundown</p>
+    </div>
+    <div class="modal-body">
+      <div class="rules-step">
+        <div class="rules-step-num">1</div>
+        <div class="rules-step-text"><strong>Create or join a lobby</strong> with at least 3 friends. Share the 5-letter code to invite people.</div>
+      </div>
+      <div class="rules-step">
+        <div class="rules-step-num">2</div>
+        <div class="rules-step-text"><strong>The guesser asks a question</strong> — something general like "What's the best winter sport?" or "What would you bring to a deserted island?" No self-describing questions!</div>
+      </div>
+      <div class="rules-step">
+        <div class="rules-step-num">3</div>
+        <div class="rules-step-text"><strong>Everyone else answers anonymously.</strong> Write whatever you want — be honest, be funny, be creative.</div>
+      </div>
+      <div class="rules-step">
+        <div class="rules-step-num">4</div>
+        <div class="rules-step-text"><strong>The guesser reads each answer</strong> one by one, then tries to match every answer to the person who wrote it.</div>
+      </div>
+      <div class="rules-step">
+        <div class="rules-step-num">5</div>
+        <div class="rules-step-text"><strong>Everyone votes</strong> on the ⭐ Best Answer and the 😂 Funniest Answer for bonus points.</div>
+      </div>
+      <div class="rules-step">
+        <div class="rules-step-num">6</div>
+        <div class="rules-step-text"><strong>Rotate!</strong> Everyone gets to be the guesser 3 times. Most points wins.</div>
+      </div>
+
+      <div class="rules-scoring">
+        <div class="rules-scoring-title">Scoring</div>
+        <div class="rules-scoring-item"><span>+1</span> for each correct guess (guesser earns these)</div>
+        <div class="rules-scoring-item"><span>+1</span> bonus for winning ⭐ Best Answer</div>
+        <div class="rules-scoring-item"><span>+1</span> bonus for winning 😂 Funniest Answer</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="btn-rules-close">Got it!</button>
+    </div>
   </div>
 </div>
 
@@ -664,7 +947,7 @@ let currentQuestion = '';
 let revealedAnswers = [];
 let allAnswers = [];
 let answerablePlayers = [];
-let guessAssignments = {}; // answerId -> playerId
+let guessAssignments = {};
 let selectedAnswerForGuess = null;
 let myBestVote = null;
 let myFunniestVote = null;
@@ -765,7 +1048,6 @@ function renderLobby(msg) {
     `;
   }).join('');
 
-  // Host controls
   const hostControls = document.getElementById('host-controls');
   const guestWaiting = document.getElementById('guest-waiting');
 
@@ -775,7 +1057,7 @@ function renderLobby(msg) {
     const btn = document.getElementById('btn-start');
     if (msg.players.length >= 3) {
       btn.disabled = false;
-      btn.textContent = `Start Game (${msg.players.length} players)`;
+      btn.textContent = `Start Game · ${msg.players.length} players`;
     } else {
       btn.disabled = true;
       btn.textContent = `Need at least 3 players (${msg.players.length}/3)`;
@@ -806,9 +1088,9 @@ function renderQuestionPhase(gc, msg) {
 
   gc.innerHTML = `
     <div class="phase-header">
-      <span class="phase-tag question">Question Time</span>
-      <div class="phase-title">${isGuesser ? 'Your Turn to Ask!' : `${msg.guesser.name} is thinking...`}</div>
-      <div class="turn-info">Turn ${msg.turnNumber} of ${msg.totalTurns} • Round ${msg.roundNumber} of ${msg.totalRounds}</div>
+      <span class="phase-tag question">Your Question</span>
+      <div class="phase-title">${isGuesser ? 'Ask the Group' : `${msg.guesser.name}'s Turn`}</div>
+      <div class="turn-info">Turn ${msg.turnNumber} of ${msg.totalTurns} · Round ${msg.roundNumber}/${msg.totalRounds}</div>
       <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
       <div class="timer-text" id="timer-text"></div>
     </div>
@@ -816,16 +1098,17 @@ function renderQuestionPhase(gc, msg) {
     ${isGuesser ? `
       <div class="card">
         <div class="input-group">
-          <label>Ask a Question</label>
-          <textarea id="question-input" placeholder="What's the best winter sport? What's a hill you'll die on? What would you bring to a deserted island?" maxlength="200"></textarea>
+          <label>Write a question for everyone</label>
+          <textarea id="question-input" placeholder='e.g. "What's the best winter sport?" or "What's a hill you'll die on?"' maxlength="200"></textarea>
         </div>
-        <button class="btn btn-primary btn-full" id="btn-submit-question" style="margin-top: 16px;">Submit Question</button>
-        <p style="text-align: center; color: var(--text-dim); font-size: 0.8rem; margin-top: 8px;">Keep it general — no self-describing questions!</p>
+        <button class="btn btn-primary btn-full" id="btn-submit-question" style="margin-top: 14px;">Submit Question</button>
+        <p class="hint">Keep it general — nothing self-describing!</p>
       </div>
     ` : `
-      <div class="card" style="text-align: center;">
-        <p style="font-size: 1.1rem; font-weight: 600;">${getAvatar(msg.guesser.id)} ${msg.guesser.name} is writing a question<span class="waiting-dots"></span></p>
-        <p style="color: var(--text-dim); margin-top: 8px;">Get ready to answer!</p>
+      <div class="card" style="text-align: center; padding: 32px 24px;">
+        <p style="font-size: 1.5rem; margin-bottom: 6px;">${getAvatar(msg.guesser.id)}</p>
+        <p style="font-weight: 600;">${msg.guesser.name} is writing a question<span class="waiting-dots"></span></p>
+        <p style="color: var(--text-muted); margin-top: 6px; font-size: 0.88rem;">Get ready to answer</p>
       </div>
     `}
   `;
@@ -847,7 +1130,7 @@ function renderAnswerPhase(gc, msg) {
   gc.innerHTML = `
     <div class="phase-header">
       <span class="phase-tag answering">Answer Time</span>
-      <div class="phase-title">${isGuesser ? 'Wait for Answers' : 'Write Your Answer!'}</div>
+      <div class="phase-title">${isGuesser ? 'Waiting for Answers' : 'Your Answer'}</div>
       <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
       <div class="timer-text" id="timer-text"></div>
     </div>
@@ -855,9 +1138,9 @@ function renderAnswerPhase(gc, msg) {
     <div class="question-display">"${escapeHtml(msg.question)}"</div>
 
     ${isGuesser ? `
-      <div class="card" style="text-align: center;">
-        <p style="font-size: 1.1rem; font-weight: 600;">Players are writing their answers<span class="waiting-dots"></span></p>
-        <p style="color: var(--text-dim); margin-top: 8px;" id="answer-progress">0 submitted</p>
+      <div class="card" style="text-align: center; padding: 32px 24px;">
+        <p style="font-weight: 600;">Players are answering<span class="waiting-dots"></span></p>
+        <p style="color: var(--text-muted); margin-top: 6px; font-size: 0.88rem;" id="answer-progress">0 submitted</p>
       </div>
     ` : `
       <div class="card">
@@ -865,7 +1148,7 @@ function renderAnswerPhase(gc, msg) {
           <label>Your Answer</label>
           <textarea id="answer-input" placeholder="Type your answer..." maxlength="300"></textarea>
         </div>
-        <button class="btn btn-accent btn-full" id="btn-submit-answer" style="margin-top: 16px;">Submit Answer</button>
+        <button class="btn btn-purple btn-full" id="btn-submit-answer" style="margin-top: 14px;">Submit Answer</button>
       </div>
     `}
   `;
@@ -898,13 +1181,13 @@ function renderRevealPhase(gc, msg) {
   gc.innerHTML = `
     <div class="phase-header">
       <span class="phase-tag reveal">Reveal</span>
-      <div class="phase-title">${isGuesser ? 'Read the Answers!' : `${msg.guesser.name} is Reading...`}</div>
+      <div class="phase-title">${isGuesser ? 'Read Each Answer' : `${msg.guesser.name} is Reading`}</div>
     </div>
 
     <div class="question-display">"${escapeHtml(msg.question)}"</div>
     <div id="revealed-answers"></div>
     ${isGuesser ? `
-      <button class="btn btn-primary btn-full" id="btn-next-reveal" style="margin-top: 16px;">Show First Answer</button>
+      <button class="btn btn-primary btn-full" id="btn-next-reveal" style="margin-top: 14px;">Show First Answer</button>
     ` : ''}
   `;
 
@@ -952,7 +1235,7 @@ function renderGuessingPhase(gc, msg) {
     gc.innerHTML = `
       <div class="phase-header">
         <span class="phase-tag guessing">Guess Time</span>
-        <div class="phase-title">Match Answers to Players!</div>
+        <div class="phase-title">Who Said What?</div>
         <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
         <div class="timer-text" id="timer-text"></div>
       </div>
@@ -961,15 +1244,13 @@ function renderGuessingPhase(gc, msg) {
 
       <div id="guess-rows"></div>
 
-      <label style="margin-top: 16px;">Available Players</label>
-      <div id="player-chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;"></div>
+      <label style="margin-top: 14px;">Players</label>
+      <div id="player-chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;"></div>
 
-      <button class="btn btn-green btn-full" id="btn-lock-in" disabled>
+      <button class="btn btn-primary btn-full" id="btn-lock-in" disabled>
         🔒 Lock In Guesses
       </button>
-      <p style="text-align: center; color: var(--text-dim); font-size: 0.8rem; margin-top: 8px;">
-        Click an answer, then click a player to assign
-      </p>
+      <p class="hint">Tap an answer, then tap a player to assign</p>
     `;
 
     renderGuessUI();
@@ -984,15 +1265,16 @@ function renderGuessingPhase(gc, msg) {
     gc.innerHTML = `
       <div class="phase-header">
         <span class="phase-tag guessing">Guess Time</span>
-        <div class="phase-title">${msg.guesser.name} is Guessing!</div>
+        <div class="phase-title">${msg.guesser.name} is Guessing</div>
         <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
         <div class="timer-text" id="timer-text"></div>
       </div>
 
       <div class="question-display">"${escapeHtml(msg.question)}"</div>
 
-      <div class="card" style="text-align: center;">
-        <p style="font-size: 1.1rem; font-weight: 600;">${getAvatar(msg.guesser.id)} ${msg.guesser.name} is matching answers<span class="waiting-dots"></span></p>
+      <div class="card" style="text-align: center; padding: 32px 24px;">
+        <p style="font-size: 1.5rem; margin-bottom: 6px;">${getAvatar(msg.guesser.id)}</p>
+        <p style="font-weight: 600;">${msg.guesser.name} is matching answers to players<span class="waiting-dots"></span></p>
       </div>
     `;
   }
@@ -1010,7 +1292,7 @@ function renderGuessUI() {
 
     return `
       <div class="guess-row">
-        <div class="guess-answer" style="${isSelected ? 'border: 2px solid var(--accent3); border-radius: 12px;' : ''}"
+        <div class="guess-answer ${isSelected ? 'selected' : ''}"
              onclick="selectAnswerForGuess('${a.id}')">
           <span class="answer-number" style="position:relative;top:0;left:0;margin-right:10px;">${i + 1}</span>
           ${escapeHtml(a.text)}
@@ -1018,7 +1300,7 @@ function renderGuessUI() {
         <div class="guess-arrow">→</div>
         <div class="guess-player-slot ${assignedPlayer ? 'filled' : ''}"
              onclick="clearGuess('${a.id}')">
-          ${assignedPlayer ? `${getAvatar(assignedPlayer.id)} ${assignedPlayer.name}` : 'Click answer, then player'}
+          ${assignedPlayer ? `${getAvatar(assignedPlayer.id)} ${assignedPlayer.name}` : '?'}
         </div>
       </div>
     `;
@@ -1049,7 +1331,6 @@ window.selectAnswerForGuess = (answerId) => {
 
 window.assignPlayer = (playerId) => {
   if (!selectedAnswerForGuess) return showToast('Select an answer first!');
-  // Remove this player from any other assignment
   for (const [aid, pid] of Object.entries(guessAssignments)) {
     if (pid === playerId) delete guessAssignments[aid];
   }
@@ -1069,8 +1350,8 @@ function renderVotingPhase(gc, msg) {
 
   gc.innerHTML = `
     <div class="phase-header">
-      <span class="phase-tag voting">Vote!</span>
-      <div class="phase-title">Pick Your Favorites!</div>
+      <span class="phase-tag voting">Vote</span>
+      <div class="phase-title">Pick Your Favorites</div>
       <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill"></div></div>
       <div class="timer-text" id="timer-text"></div>
     </div>
@@ -1122,7 +1403,7 @@ function renderResultsPhase(gc, msg) {
   gc.innerHTML = `
     <div class="phase-header">
       <span class="phase-tag question">Results</span>
-      <div class="phase-title">${r.correct}/${r.total} Correct!</div>
+      <div class="phase-title">${r.correct}/${r.total} Correct</div>
     </div>
 
     <div class="card">
@@ -1134,8 +1415,9 @@ function renderResultsPhase(gc, msg) {
           <div>
             ${res.correct
               ? `<span class="result-player">${res.actualPlayer.name}</span>`
-              : `<span style="color:var(--red);text-decoration:line-through;">${res.guessedPlayer?.name || '???'}</span>
-                 → <span class="result-player">${res.actualPlayer.name}</span>`
+              : `<span style="color:var(--red);text-decoration:line-through;font-size:0.85rem;">${res.guessedPlayer?.name || '???'}</span>
+                 <span style="color:var(--text-muted);margin:0 3px;">→</span>
+                 <span class="result-player">${res.actualPlayer.name}</span>`
             }
           </div>
         </div>
@@ -1144,25 +1426,25 @@ function renderResultsPhase(gc, msg) {
 
     ${msg.bestAnswer ? `
       <div class="card" style="text-align: center;">
-        <div style="font-size: 1.2rem; margin-bottom: 4px;">⭐ Best Answer</div>
-        <div style="font-weight: 700; font-size: 1.1rem;">"${escapeHtml(msg.bestAnswer.text)}"</div>
-        <div style="color: var(--accent3); font-weight: 700; margin-top: 4px;">— ${msg.bestAnswer.player} (+1 bonus)</div>
+        <div style="font-size: 1rem; margin-bottom: 2px;">⭐ Best Answer</div>
+        <div style="font-weight: 700; font-size: 1rem; color: var(--purple);">"${escapeHtml(msg.bestAnswer.text)}"</div>
+        <div style="color: var(--green); font-weight: 700; margin-top: 4px; font-size: 0.88rem;">— ${msg.bestAnswer.player} (+1)</div>
       </div>
     ` : ''}
 
     ${msg.funniestAnswer ? `
       <div class="card" style="text-align: center;">
-        <div style="font-size: 1.2rem; margin-bottom: 4px;">😂 Funniest Answer</div>
-        <div style="font-weight: 700; font-size: 1.1rem;">"${escapeHtml(msg.funniestAnswer.text)}"</div>
-        <div style="color: var(--accent3); font-weight: 700; margin-top: 4px;">— ${msg.funniestAnswer.player} (+1 bonus)</div>
+        <div style="font-size: 1rem; margin-bottom: 2px;">😂 Funniest Answer</div>
+        <div style="font-weight: 700; font-size: 1rem; color: var(--purple);">"${escapeHtml(msg.funniestAnswer.text)}"</div>
+        <div style="color: var(--green); font-weight: 700; margin-top: 4px; font-size: 0.88rem;">— ${msg.funniestAnswer.player} (+1)</div>
       </div>
     ` : ''}
 
     <div class="card">
       <label>Scoreboard</label>
       ${msg.scoreboard.map((p, i) => `
-        <div class="score-row" style="animation-delay: ${i * 0.1}s">
-          <div class="score-rank">${i === 0 ? '👑' : `#${i + 1}`}</div>
+        <div class="score-row" style="animation-delay: ${i * 0.08}s">
+          <div class="score-rank">${i === 0 ? '👑' : `${i + 1}`}</div>
           <div class="score-name">${getAvatar(p.id)} ${p.name} ${p.id === myId ? '<span class="status-badge you">You</span>' : ''}</div>
           <div class="score-points">${p.score} pts</div>
         </div>
@@ -1170,9 +1452,9 @@ function renderResultsPhase(gc, msg) {
     </div>
 
     ${isHost ? `
-      <button class="btn btn-primary btn-full" id="btn-next-turn" style="margin-top: 16px;">Next Turn →</button>
+      <button class="btn btn-primary btn-full" id="btn-next-turn" style="margin-top: 14px;">Next Turn →</button>
     ` : `
-      <p style="text-align: center; color: var(--text-dim); margin-top: 16px;" class="waiting-dots">Waiting for host to continue</p>
+      <p style="text-align: center; color: var(--text-muted); margin-top: 14px; font-size: 0.88rem;" class="waiting-dots">Waiting for host</p>
     `}
   `;
 
@@ -1189,21 +1471,21 @@ function renderGameOver(msg) {
   launchConfetti();
 
   gc.innerHTML = `
-    <div class="phase-header" style="margin-top: 40px;">
-      <div class="phase-title" style="font-size: 2.2rem;">Game Over!</div>
+    <div class="phase-header" style="margin-top: 32px;">
+      <div class="phase-title" style="font-size: 2rem;">Game Over!</div>
     </div>
 
     <div class="winner-banner">
-      <div style="font-size: 3rem;">🏆</div>
+      <div style="font-size: 2.4rem;">🏆</div>
       <div class="winner-name">${winner.name}</div>
-      <div style="color: var(--text-dim); font-weight: 700; margin-top: 4px;">${winner.score} points</div>
+      <div style="color: var(--text-secondary); font-weight: 700; margin-top: 2px;">${winner.score} points</div>
     </div>
 
     <div class="card">
-      <label>Final Scoreboard</label>
+      <label>Final Standings</label>
       ${msg.scoreboard.map((p, i) => `
-        <div class="score-row" style="animation-delay: ${i * 0.1}s">
-          <div class="score-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</div>
+        <div class="score-row" style="animation-delay: ${i * 0.08}s">
+          <div class="score-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`}</div>
           <div class="score-name">${getAvatar(p.id)} ${p.name} ${p.id === myId ? '<span class="status-badge you">You</span>' : ''}</div>
           <div class="score-points">${p.score} pts</div>
         </div>
@@ -1211,7 +1493,7 @@ function renderGameOver(msg) {
     </div>
 
     ${isHost ? `
-      <button class="btn btn-primary btn-full" style="margin-top: 16px;" id="btn-play-again">Play Again</button>
+      <button class="btn btn-primary btn-full" style="margin-top: 14px;" id="btn-play-again">Play Again</button>
     ` : ''}
   `;
 
@@ -1269,8 +1551,8 @@ function showToast(text) {
 }
 
 function launchConfetti() {
-  const colors = ['#f72585', '#7209b7', '#4cc9f0', '#f9c74f', '#06d6a0', '#ef476f'];
-  for (let i = 0; i < 60; i++) {
+  const colors = ['#1A8C4E', '#2D1B4E', '#22C55E', '#D97706', '#4A3270', '#14693A'];
+  for (let i = 0; i < 50; i++) {
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
     piece.style.left = Math.random() * 100 + 'vw';
@@ -1278,8 +1560,8 @@ function launchConfetti() {
     piece.style.animationDelay = Math.random() * 2 + 's';
     piece.style.animationDuration = (2 + Math.random() * 2) + 's';
     piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    piece.style.width = (6 + Math.random() * 8) + 'px';
-    piece.style.height = (6 + Math.random() * 8) + 'px';
+    piece.style.width = (5 + Math.random() * 7) + 'px';
+    piece.style.height = (5 + Math.random() * 7) + 'px';
     document.body.appendChild(piece);
     setTimeout(() => piece.remove(), 5000);
   }
@@ -1315,12 +1597,57 @@ document.getElementById('display-code').onclick = () => {
   showToast('Code copied!');
 };
 
-// Allow Enter key on inputs
 document.getElementById('input-name').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('btn-create').click();
 });
 document.getElementById('input-code').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('btn-join').click();
+});
+
+// ─── MODALS ─────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Welcome modal — show on first visit
+const hasPlayed = sessionStorage.getItem('whodat-has-played');
+if (!hasPlayed) {
+  // Small delay so the page renders first
+  setTimeout(() => openModal('modal-welcome'), 400);
+}
+
+document.getElementById('btn-welcome-yes').onclick = () => {
+  sessionStorage.setItem('whodat-has-played', '1');
+  closeModal('modal-welcome');
+};
+
+document.getElementById('btn-welcome-no').onclick = () => {
+  sessionStorage.setItem('whodat-has-played', '1');
+  closeModal('modal-welcome');
+  setTimeout(() => openModal('modal-rules'), 250);
+};
+
+// Rules modal
+document.getElementById('btn-rules-close').onclick = () => {
+  closeModal('modal-rules');
+};
+
+// How to Play link on home screen
+document.getElementById('btn-how-to-play').onclick = () => {
+  openModal('modal-rules');
+};
+
+// Close modals by clicking overlay background
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('open');
+    }
+  });
 });
 
 // ─── INIT ───────────────────────────────────────────────────────────
