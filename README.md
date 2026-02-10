@@ -1,4 +1,4 @@
-# 🎮 WhoDat? — The Party Guessing Game
+# 🎮Pen and Paper — The Party Guessing Game
 
 A real-time multiplayer party game where one player asks a question, everyone answers anonymously, and the asker tries to guess who wrote what!
 

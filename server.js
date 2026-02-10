@@ -579,7 +579,7 @@ wss.on('connection', (ws) => {
 // ─── START ─────────────────────────────────────────────────────────
 server.listen(PORT, () => {
   console.log('');
-  console.log('  🎮  WhoDat? Game Server');
+  console.log('  🎮  Pen and Paper Game Game Server');
   console.log(`  🌐  http://localhost:${PORT}`);
   console.log('  📋  Share the lobby code with friends on your network');
   console.log('');

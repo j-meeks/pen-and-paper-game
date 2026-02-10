@@ -1,0 +1,22 @@
+{
+  "name": "pen-and-paper-game",
+  "version": "1.0.0",
+  "description": "A real-time multiplayer party game where one player asks a question, everyone answers anonymously, and the asker tries to guess who wrote what!",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/j-meeks/pen-and-paper-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/j-meeks/pen-and-paper-game/issues"
+  },
+  "homepage": "https://github.com/j-meeks/pen-and-paper-game#readme"
+}
