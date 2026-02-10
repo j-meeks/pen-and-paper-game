@@ -636,6 +636,229 @@ label {
   margin: 16px 0;
 }
 
+/* ─── SETTINGS PANEL ─────────────────────────────────── */
+.settings-card {
+  border: 1.5px solid var(--green);
+  background: var(--surface);
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-header h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--purple);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-toggle-icon {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.settings-toggle-icon.open { transform: rotate(180deg); }
+
+.settings-body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+}
+
+.settings-body.open {
+  max-height: 600px;
+}
+
+.settings-section {
+  padding-top: 16px;
+}
+
+.settings-section + .settings-section {
+  border-top: 1px solid var(--border-light);
+  margin-top: 14px;
+}
+
+.settings-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0;
+  gap: 12px;
+}
+
+.setting-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.setting-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--green);
+  min-width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Range Slider */
+.setting-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--surface-alt);
+  border-radius: 2px;
+  outline: none;
+}
+
+.setting-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--green);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: transform 0.1s;
+}
+
+.setting-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.setting-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--green);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* Option Buttons (for point values) */
+.option-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.option-btn {
+  padding: 6px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.option-btn:hover { border-color: var(--green); }
+.option-btn.active {
+  background: var(--green-light);
+  border-color: var(--green);
+  color: var(--green-dark);
+}
+
+/* Toggle Switch */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.toggle input:checked + .toggle-track {
+  background: var(--green);
+}
+
+.toggle input:checked + .toggle-track::after {
+  transform: translateX(20px);
+}
+
+/* Guest settings (read-only) */
+.settings-readonly {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--bg);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.settings-chip span {
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
 /* ─── MODAL OVERLAY ──────────────────────────────────── */
 .modal-overlay {
   position: fixed;
@@ -849,6 +1072,84 @@ label {
       <div class="player-list-lobby" id="player-list"></div>
     </div>
 
+    <!-- Host: full settings panel -->
+    <div class="card settings-card" id="settings-panel-host" style="display: none;">
+      <div class="settings-header" id="settings-header-toggle">
+        <h3>⚙️ Game Settings</h3>
+        <span class="settings-toggle-icon" id="settings-chevron">▼</span>
+      </div>
+      <div class="settings-body" id="settings-body">
+
+        <div class="settings-section">
+          <div class="settings-section-title">Rounds</div>
+          <div class="setting-row">
+            <span class="setting-label">Rounds</span>
+            <input type="range" class="setting-slider" id="setting-rounds" min="1" max="5" step="1" value="3">
+            <span class="setting-value" id="val-rounds">3</span>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Timers</div>
+          <div class="setting-row">
+            <span class="setting-label">Question</span>
+            <input type="range" class="setting-slider" id="setting-timerQuestion" min="30" max="90" step="5" value="60">
+            <span class="setting-value" id="val-timerQuestion">60s</span>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Answer</span>
+            <input type="range" class="setting-slider" id="setting-timerAnswer" min="30" max="90" step="5" value="60">
+            <span class="setting-value" id="val-timerAnswer">60s</span>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Guess (per player)</span>
+            <input type="range" class="setting-slider" id="setting-timerPerPlayer" min="15" max="45" step="5" value="30">
+            <span class="setting-value" id="val-timerPerPlayer">30s</span>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Points</div>
+          <div class="setting-row">
+            <span class="setting-label">Per correct guess</span>
+            <div class="option-buttons" id="opts-pointsPerCorrect">
+              <button class="option-btn" data-val="1">1</button>
+              <button class="option-btn" data-val="1.5">1.5</button>
+              <button class="option-btn" data-val="2">2</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Bonus Voting</div>
+          <div class="setting-row">
+            <span class="setting-label">Best & Funniest votes</span>
+            <label class="toggle">
+              <input type="checkbox" id="setting-bonusEnabled" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div id="bonus-points-row">
+            <div class="setting-row">
+              <span class="setting-label">Bonus points</span>
+              <div class="option-buttons" id="opts-bonusPoints">
+                <button class="option-btn" data-val="0.5">0.5</button>
+                <button class="option-btn" data-val="1">1</button>
+                <button class="option-btn" data-val="1.5">1.5</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Guest: read-only settings summary -->
+    <div class="card" id="settings-panel-guest" style="display: none;">
+      <label>Game Settings</label>
+      <div class="settings-readonly" id="settings-readonly-chips"></div>
+    </div>
+
     <div id="host-controls" style="width: 100%; margin-top: 12px; display: none;">
       <button class="btn btn-primary btn-full" id="btn-start" disabled>Need at least 3 players</button>
     </div>
@@ -951,6 +1252,11 @@ let guessAssignments = {};
 let selectedAnswerForGuess = null;
 let myBestVote = null;
 let myFunniestVote = null;
+let lobbySettings = {
+  rounds: 3, timerQuestion: 60, timerAnswer: 60,
+  timerPerPlayer: 30, pointsPerCorrect: 1,
+  bonusEnabled: true, bonusPoints: 1,
+};
 
 // ─── WEBSOCKET ──────────────────────────────────────────────────────
 function connect() {
@@ -999,6 +1305,7 @@ function handleServerMessage(msg) {
     case 'phase':
       gamePhase = msg.phase;
       if (msg.phase === 'lobby') {
+        settingsInitialized = false;
         showScreen('lobby');
       } else if (msg.phase === 'gameover') {
         renderGameOver(msg);
@@ -1033,6 +1340,9 @@ function renderLobby(msg) {
   document.getElementById('display-code').textContent = msg.code;
   document.getElementById('player-count').textContent = msg.players.length;
 
+  // Update local settings from server
+  if (msg.settings) lobbySettings = { ...msg.settings };
+
   const list = document.getElementById('player-list');
   list.innerHTML = msg.players.map(p => {
     const badges = [];
@@ -1054,6 +1364,9 @@ function renderLobby(msg) {
   if (isHost) {
     hostControls.style.display = 'block';
     guestWaiting.style.display = 'none';
+    document.getElementById('settings-panel-host').style.display = 'block';
+    document.getElementById('settings-panel-guest').style.display = 'none';
+
     const btn = document.getElementById('btn-start');
     if (msg.players.length >= 3) {
       btn.disabled = false;
@@ -1062,9 +1375,34 @@ function renderLobby(msg) {
       btn.disabled = true;
       btn.textContent = `Need at least 3 players (${msg.players.length}/3)`;
     }
+
+    // Sync slider values (only on first render, don't fight user input)
+    if (!settingsInitialized) {
+      syncSettingsUI(lobbySettings);
+      settingsInitialized = true;
+    }
   } else {
     hostControls.style.display = 'none';
     guestWaiting.style.display = 'block';
+    document.getElementById('settings-panel-host').style.display = 'none';
+    document.getElementById('settings-panel-guest').style.display = 'block';
+
+    // Render read-only chips
+    const s = lobbySettings;
+    const chips = document.getElementById('settings-readonly-chips');
+    const parts = [
+      `<span class="settings-chip">${s.rounds} <span>round${s.rounds !== 1 ? 's' : ''}</span></span>`,
+      `<span class="settings-chip">Q: <span>${s.timerQuestion}s</span></span>`,
+      `<span class="settings-chip">A: <span>${s.timerAnswer}s</span></span>`,
+      `<span class="settings-chip">Guess: <span>${s.timerPerPlayer}s/player</span></span>`,
+      `<span class="settings-chip"><span>${s.pointsPerCorrect}pt</span> per guess</span>`,
+    ];
+    if (s.bonusEnabled) {
+      parts.push(`<span class="settings-chip">Bonus: <span>${s.bonusPoints}pt</span></span>`);
+    } else {
+      parts.push(`<span class="settings-chip">Bonus: <span>Off</span></span>`);
+    }
+    chips.innerHTML = parts.join('');
   }
 }
 
@@ -1428,7 +1766,7 @@ function renderResultsPhase(gc, msg) {
       <div class="card" style="text-align: center;">
         <div style="font-size: 1rem; margin-bottom: 2px;">⭐ Best Answer</div>
         <div style="font-weight: 700; font-size: 1rem; color: var(--purple);">"${escapeHtml(msg.bestAnswer.text)}"</div>
-        <div style="color: var(--green); font-weight: 700; margin-top: 4px; font-size: 0.88rem;">— ${msg.bestAnswer.player} (+1)</div>
+        <div style="color: var(--green); font-weight: 700; margin-top: 4px; font-size: 0.88rem;">— ${msg.bestAnswer.player} (+${msg.bestAnswer.points || 1})</div>
       </div>
     ` : ''}
 
@@ -1436,7 +1774,7 @@ function renderResultsPhase(gc, msg) {
       <div class="card" style="text-align: center;">
         <div style="font-size: 1rem; margin-bottom: 2px;">😂 Funniest Answer</div>
         <div style="font-weight: 700; font-size: 1rem; color: var(--purple);">"${escapeHtml(msg.funniestAnswer.text)}"</div>
-        <div style="color: var(--green); font-weight: 700; margin-top: 4px; font-size: 0.88rem;">— ${msg.funniestAnswer.player} (+1)</div>
+        <div style="color: var(--green); font-weight: 700; margin-top: 4px; font-size: 0.88rem;">— ${msg.funniestAnswer.player} (+${msg.funniestAnswer.points || 1})</div>
       </div>
     ` : ''}
 
@@ -1603,6 +1941,109 @@ document.getElementById('input-name').addEventListener('keydown', (e) => {
 document.getElementById('input-code').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('btn-join').click();
 });
+
+// ─── SETTINGS ───────────────────────────────────────────────────────
+let settingsInitialized = false;
+
+function syncSettingsUI(s) {
+  // Sliders
+  const setSlider = (id, val, suffix) => {
+    const el = document.getElementById('setting-' + id);
+    const valEl = document.getElementById('val-' + id);
+    if (el) el.value = val;
+    if (valEl) valEl.textContent = val + (suffix || '');
+  };
+  setSlider('rounds', s.rounds, '');
+  setSlider('timerQuestion', s.timerQuestion, 's');
+  setSlider('timerAnswer', s.timerAnswer, 's');
+  setSlider('timerPerPlayer', s.timerPerPlayer, 's');
+
+  // Option buttons
+  setOptionButtons('opts-pointsPerCorrect', s.pointsPerCorrect);
+  setOptionButtons('opts-bonusPoints', s.bonusPoints);
+
+  // Toggle
+  const bonusToggle = document.getElementById('setting-bonusEnabled');
+  if (bonusToggle) bonusToggle.checked = s.bonusEnabled;
+  updateBonusVisibility(s.bonusEnabled);
+}
+
+function setOptionButtons(containerId, activeVal) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.option-btn').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.val) === activeVal);
+  });
+}
+
+function updateBonusVisibility(enabled) {
+  const row = document.getElementById('bonus-points-row');
+  if (row) {
+    row.style.opacity = enabled ? '1' : '0.35';
+    row.style.pointerEvents = enabled ? 'auto' : 'none';
+  }
+}
+
+function sendSettings() {
+  send({ type: 'update_settings', settings: lobbySettings });
+}
+
+function initSettingsListeners() {
+  // Collapse/expand toggle
+  document.getElementById('settings-header-toggle').addEventListener('click', () => {
+    const body = document.getElementById('settings-body');
+    const chevron = document.getElementById('settings-chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+  });
+
+  // Sliders
+  const sliderConfig = [
+    { id: 'rounds', key: 'rounds', suffix: '' },
+    { id: 'timerQuestion', key: 'timerQuestion', suffix: 's' },
+    { id: 'timerAnswer', key: 'timerAnswer', suffix: 's' },
+    { id: 'timerPerPlayer', key: 'timerPerPlayer', suffix: 's' },
+  ];
+
+  sliderConfig.forEach(({ id, key, suffix }) => {
+    const el = document.getElementById('setting-' + id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      const val = parseInt(el.value);
+      document.getElementById('val-' + id).textContent = val + suffix;
+      lobbySettings[key] = val;
+      sendSettings();
+    });
+  });
+
+  // Option buttons
+  function setupOptionButtons(containerId, settingsKey) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll('.option-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        lobbySettings[settingsKey] = parseFloat(btn.dataset.val);
+        setOptionButtons(containerId, lobbySettings[settingsKey]);
+        sendSettings();
+      });
+    });
+  }
+
+  setupOptionButtons('opts-pointsPerCorrect', 'pointsPerCorrect');
+  setupOptionButtons('opts-bonusPoints', 'bonusPoints');
+
+  // Bonus toggle
+  const bonusToggle = document.getElementById('setting-bonusEnabled');
+  if (bonusToggle) {
+    bonusToggle.addEventListener('change', () => {
+      lobbySettings.bonusEnabled = bonusToggle.checked;
+      updateBonusVisibility(bonusToggle.checked);
+      sendSettings();
+    });
+  }
+}
+
+initSettingsListeners();
 
 // ─── MODALS ─────────────────────────────────────────────────────────
 function openModal(id) {

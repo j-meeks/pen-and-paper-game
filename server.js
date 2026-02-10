@@ -6,10 +6,16 @@ const { WebSocketServer } = require('ws');
 
 // ─── CONFIG ────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-const TIMER_QUESTION = 60;
-const TIMER_ANSWER = 60;
-const TIMER_PER_PLAYER = 30;
-const ROUNDS = 3;
+
+const DEFAULT_SETTINGS = {
+  rounds: 3,             // 1-5
+  timerQuestion: 60,     // 30-90
+  timerAnswer: 60,       // 30-90
+  timerPerPlayer: 30,    // 15-45
+  pointsPerCorrect: 1,   // 1, 1.5, 2
+  bonusEnabled: true,     // true/false
+  bonusPoints: 1,         // 0.5, 1, 1.5
+};
 
 // ─── RESOLVE CLIENT HTML FIRST ─────────────────────────────────────
 const possiblePaths = [
@@ -52,6 +58,20 @@ function generateId() {
   return crypto.randomBytes(8).toString('hex');
 }
 
+function sanitizeSettings(raw) {
+  const s = { ...DEFAULT_SETTINGS };
+  if (raw) {
+    if (typeof raw.rounds === 'number') s.rounds = Math.min(5, Math.max(1, Math.round(raw.rounds)));
+    if (typeof raw.timerQuestion === 'number') s.timerQuestion = Math.min(90, Math.max(30, Math.round(raw.timerQuestion)));
+    if (typeof raw.timerAnswer === 'number') s.timerAnswer = Math.min(90, Math.max(30, Math.round(raw.timerAnswer)));
+    if (typeof raw.timerPerPlayer === 'number') s.timerPerPlayer = Math.min(45, Math.max(15, Math.round(raw.timerPerPlayer)));
+    if ([1, 1.5, 2].includes(raw.pointsPerCorrect)) s.pointsPerCorrect = raw.pointsPerCorrect;
+    if (typeof raw.bonusEnabled === 'boolean') s.bonusEnabled = raw.bonusEnabled;
+    if ([0.5, 1, 1.5].includes(raw.bonusPoints)) s.bonusPoints = raw.bonusPoints;
+  }
+  return s;
+}
+
 function createLobby(hostId, hostName) {
   const code = generateLobbyCode();
   const lobby = {
@@ -59,6 +79,7 @@ function createLobby(hostId, hostName) {
     hostId,
     players: [{ id: hostId, name: hostName, score: 0, connected: true }],
     phase: 'lobby',
+    settings: { ...DEFAULT_SETTINGS },
     currentGuesserIdx: 0,
     guesserOrder: [],
     currentQuestion: '',
@@ -118,7 +139,7 @@ function clearTimer(lobby) {
 function startGame(lobby) {
   const playerIds = lobby.players.map(p => p.id);
   lobby.guesserOrder = [];
-  for (let r = 0; r < ROUNDS; r++) {
+  for (let r = 0; r < lobby.settings.rounds; r++) {
     lobby.guesserOrder.push(...shuffleArray(playerIds));
   }
   lobby.currentGuesserIdx = 0;
@@ -147,10 +168,10 @@ function startQuestionPhase(lobby) {
     turnNumber,
     totalTurns,
     roundNumber: Math.floor(lobby.currentGuesserIdx / lobby.players.length) + 1,
-    totalRounds: ROUNDS,
+    totalRounds: lobby.settings.rounds,
   });
 
-  startTimer(lobby, TIMER_QUESTION, () => {
+  startTimer(lobby, lobby.settings.timerQuestion, () => {
     if (!lobby.currentQuestion) {
       lobby.currentQuestion = "What's the best thing about being alive?";
     }
@@ -167,7 +188,7 @@ function startAnswerPhase(lobby) {
     guesser: { id: getGuesser(lobby).id, name: getGuesser(lobby).name },
   });
 
-  startTimer(lobby, TIMER_ANSWER, () => {
+  startTimer(lobby, lobby.settings.timerAnswer, () => {
     const answerers = getAnswerers(lobby);
     answerers.forEach(p => {
       if (!lobby.answers.has(p.id)) {
@@ -213,7 +234,7 @@ function sendRevealAnswer(lobby) {
 function startGuessingPhase(lobby) {
   lobby.phase = 'guessing';
   const answerers = getAnswerers(lobby);
-  const timerSeconds = TIMER_PER_PLAYER * answerers.length;
+  const timerSeconds = lobby.settings.timerPerPlayer * answerers.length;
 
   const answers = lobby.shuffledAnswers.map(a => ({ id: a.id, text: a.text }));
   const players = answerers.map(p => ({ id: p.id, name: p.name }));
@@ -270,18 +291,20 @@ function tallyVotes(lobby) {
     if (count > funniestMax) { funniestMax = count; funniestAnswerId = id; }
   }
 
+  const bonusPts = lobby.settings.bonusPoints;
+
   if (bestAnswerId) {
     const answer = lobby.shuffledAnswers.find(a => a.id === bestAnswerId);
     if (answer) {
       const player = lobby.players.find(p => p.id === answer.playerId);
-      if (player) player.score += 1;
+      if (player) player.score += bonusPts;
     }
   }
   if (funniestAnswerId) {
     const answer = lobby.shuffledAnswers.find(a => a.id === funniestAnswerId);
     if (answer) {
       const player = lobby.players.find(p => p.id === answer.playerId);
-      if (player) player.score += 1;
+      if (player) player.score += bonusPts;
     }
   }
 
@@ -309,9 +332,15 @@ function scoreGuesses(lobby) {
     });
   }
 
-  guesser.score += correct;
+  guesser.score += correct * lobby.settings.pointsPerCorrect;
   lobby.guessResults = { correct, total: lobby.shuffledAnswers.length, results };
-  startVotingPhase(lobby);
+
+  // If bonus voting is off, skip straight to results
+  if (!lobby.settings.bonusEnabled) {
+    showResults(lobby, null, null);
+  } else {
+    startVotingPhase(lobby);
+  }
 }
 
 function showResults(lobby, bestAnswerId, funniestAnswerId) {
@@ -324,13 +353,16 @@ function showResults(lobby, bestAnswerId, funniestAnswerId) {
     type: 'phase',
     phase: 'results',
     guessResults: lobby.guessResults,
+    settings: lobby.settings,
     bestAnswer: bestAnswer ? {
       text: bestAnswer.text,
       player: lobby.players.find(p => p.id === bestAnswer.playerId)?.name,
+      points: lobby.settings.bonusPoints,
     } : null,
     funniestAnswer: funniestAnswer ? {
       text: funniestAnswer.text,
       player: lobby.players.find(p => p.id === funniestAnswer.playerId)?.name,
+      points: lobby.settings.bonusPoints,
     } : null,
     scoreboard: lobby.players.map(p => ({ id: p.id, name: p.name, score: p.score }))
       .sort((a, b) => b.score - a.score),
@@ -353,7 +385,7 @@ function nextTurn(lobby) {
 }
 
 // ─── WEBSOCKET ─────────────────────────────────────────────────────
-const clients = new Map(); // ws -> { id, lobbyCode, name }
+const clients = new Map();
 
 function broadcastToLobby(lobby, msg) {
   const data = JSON.stringify(msg);
@@ -374,6 +406,7 @@ function broadcastLobbyState(lobby) {
     players: lobby.players.map(p => ({ id: p.id, name: p.name, score: p.score, connected: p.connected })),
     hostId: lobby.hostId,
     code: lobby.code,
+    settings: lobby.settings,
   });
 }
 
@@ -428,6 +461,17 @@ function handleMessage(ws, data) {
       clients.set(ws, { id, lobbyCode: code, name });
       console.log(`  + ${name} joined lobby ${code}`);
       sendTo(ws, { type: 'joined', playerId: id, lobbyCode: code, isHost: false });
+      broadcastLobbyState(lobby);
+      break;
+    }
+
+    case 'update_settings': {
+      if (!client) return;
+      const lobby = lobbies.get(client.lobbyCode);
+      if (!lobby || lobby.hostId !== client.id) return;
+      if (lobby.phase !== 'lobby') return;
+      lobby.settings = sanitizeSettings(msg.settings);
+      console.log(`  ⚙ Settings updated in lobby ${lobby.code}`);
       broadcastLobbyState(lobby);
       break;
     }
@@ -556,7 +600,7 @@ const server = http.createServer((req, res) => {
   }
 });
 
-// ─── WEBSOCKET SERVER (using ws package) ───────────────────────────
+// ─── WEBSOCKET SERVER ──────────────────────────────────────────────
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
@@ -576,7 +620,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-// ─── START ─────────────────────────────────────────────────────────
 server.listen(PORT, () => {
   console.log('');
   console.log('  🎮  Pen and Paper Game Game Server');
