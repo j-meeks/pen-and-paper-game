@@ -1058,13 +1058,41 @@ label {
     </button>
   </div>
 
+  <!-- ═══ SCREEN: INVITE JOIN ═══ -->
+  <div id="screen-invite" class="screen">
+    <div class="logo">Who<span>Dat</span>?</div>
+    <div class="logo-sub">You've been invited!</div>
+
+    <div class="card">
+      <div style="text-align: center; margin-bottom: 14px;">
+        <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em;">Joining Lobby</div>
+        <div style="font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--green); letter-spacing: 0.1em; margin-top: 2px;" id="invite-code-display"></div>
+      </div>
+      <div class="input-group">
+        <label>Your Name</label>
+        <input type="text" id="invite-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-invite-join" style="margin-top: 16px;">Join Game</button>
+    </div>
+
+    <button class="how-to-play-link" id="btn-invite-how-to-play">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      How to Play
+    </button>
+  </div>
+
   <!-- ═══ SCREEN: LOBBY ═══ -->
   <div id="screen-lobby" class="screen">
-    <div class="logo" style="font-size: 1.6rem; margin: 16px 0 4px;">Pen <span>and</span> Paper <span>Game</span></div>
-    <div class="card" style="text-align: center;">
+    <div class="logo" style="font-size: 1.6rem; margin: 16px 0 4px;">Pen <span>and</span> Paper <span>Game</span></div>    <div class="card" style="text-align: center;">
       <div style="font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em;">Lobby Code</div>
       <div class="lobby-code" id="display-code" title="Click to copy"></div>
-      <div class="lobby-code-label">tap to copy · share with friends</div>
+      <div class="lobby-code-label">tap code to copy</div>
+      <div style="margin-top: 12px;">
+        <button class="btn btn-outline-green btn-full" id="btn-copy-invite" style="font-size: 0.82rem; padding: 10px 16px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Copy Invite Link
+        </button>
+      </div>
     </div>
 
     <div class="card">
@@ -1083,7 +1111,7 @@ label {
         <div class="settings-section">
           <div class="settings-section-title">Rounds</div>
           <div class="setting-row">
-            <span class="setting-label">Rounds</span>
+            <span class="setting-label">Rounds per player</span>
             <input type="range" class="setting-slider" id="setting-rounds" min="1" max="5" step="1" value="3">
             <span class="setting-value" id="val-rounds">3</span>
           </div>
@@ -1942,6 +1970,49 @@ document.getElementById('input-code').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('btn-join').click();
 });
 
+// ─── INVITE LINK HANDLING ───────────────────────────────────────────
+let pendingInviteCode = null;
+
+// Copy invite link button in lobby
+document.getElementById('btn-copy-invite').onclick = () => {
+  const url = `${location.origin}/join/${lobbyCode}`;
+  navigator.clipboard?.writeText(url);
+  showToast('Invite link copied!');
+};
+
+// Invite screen join button
+document.getElementById('btn-invite-join').onclick = () => {
+  const name = document.getElementById('invite-name').value.trim();
+  if (!name) return showToast('Enter your name!');
+  send({ type: 'join_lobby', name, code: pendingInviteCode });
+};
+
+document.getElementById('invite-name').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('btn-invite-join').click();
+});
+
+// How to Play on invite screen
+document.getElementById('btn-invite-how-to-play').onclick = () => {
+  openModal('modal-rules');
+};
+
+// Detect /join/CODE in URL on page load
+function checkInviteUrl() {
+  const match = location.pathname.match(/^\/join\/([A-Za-z0-9]{5})$/);
+  if (match) {
+    pendingInviteCode = match[1].toUpperCase();
+    document.getElementById('invite-code-display').textContent = pendingInviteCode;
+    showScreen('invite');
+    setTimeout(() => document.getElementById('invite-name').focus(), 100);
+    // Clean up URL without reloading
+    history.replaceState(null, '', '/');
+    return true;
+  }
+  return false;
+}
+
+const isInvite = checkInviteUrl();
+
 // ─── SETTINGS ───────────────────────────────────────────────────────
 let settingsInitialized = false;
 
@@ -2054,9 +2125,9 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
-// Welcome modal — show on first visit
+// Welcome modal — show on first visit (not on invite links)
 const hasPlayed = sessionStorage.getItem('whodat-has-played');
-if (!hasPlayed) {
+if (!hasPlayed && !isInvite) {
   // Small delay so the page renders first
   setTimeout(() => openModal('modal-welcome'), 400);
 }
