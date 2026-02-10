@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/j-meeks/pen-and-paper-game/issues"
   },
-  "homepage": "https://github.com/j-meeks/pen-and-paper-game#readme"
+  "homepage": "https://github.com/j-meeks/pen-and-paper-game#readme",
+  "dependencies": {
+    "ws": "^8.19.0"
+  }
 }
