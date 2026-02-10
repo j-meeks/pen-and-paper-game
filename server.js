@@ -588,7 +588,7 @@ function handleMessage(ws, data) {
 
 // ─── HTTP SERVER ───────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
-  if (req.url === '/' || req.url === '/index.html') {
+  if (req.url === '/' || req.url === '/index.html' || req.url.startsWith('/join/')) {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(clientHtml);
   } else if (req.url === '/health') {
@@ -622,7 +622,7 @@ wss.on('connection', (ws) => {
 
 server.listen(PORT, () => {
   console.log('');
-  console.log('  🎮  Pen and Paper Game Game Server');
+  console.log('  🎮  Pen and Paper Game Server');
   console.log(`  🌐  http://localhost:${PORT}`);
   console.log('  📋  Share the lobby code with friends on your network');
   console.log('');
